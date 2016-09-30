@@ -18,16 +18,46 @@ cat("The most common industry is", names(industryTable[1]), ", with",
 geographyForIndustry <- people$geography[idx]
 geographyIndustryTable <- table(geographyForIndustry, industryAlone)
 maxIndustryIdx <- apply(geographyIndustryTable,1,which.max)
-# TODO map the indices to the actual industry tag
-maxIndustryDF <- as.data.frame(maxIndustryIdx)
-maxIndustryDF$PUMA <- rownames(maxIndustryDF)
+maxIndustry <- industryAlone[maxIndustryIdx]
+maxIndustryDF <- as.data.frame(maxIndustry)
+maxIndustryDF$PUMA <- rownames(as.data.frame(maxIndustryIdx))
+
+# pull out the industry names
+setOfMaxIndustries <- sort(unique(maxIndustryDF$maxIndustry))
+setOfMaxIndustries <- formatC(setOfMaxIndustries,width=4,flag="0")
+industryNames <- read.table("/home/eli/Data/ACS/industries.txt", sep=".")
+maxIndustryNamesIdx <- match(setOfMaxIndustries,industryNames$V1)
+maxIndustryNames <- industryNames$V2[maxIndustryNamesIdx]
+
+# tidy this data to make it display better
+setOfMaxIndustries <- sort(unique(maxIndustryDF$maxIndustry))
+setOfMaxIndustries <- as.data.frame(setOfMaxIndustries)
+maxIndustryDF$maxIndustryCleaned <- maxIndustryDF$maxIndustry
+for (industry in setOfMaxIndustries){
+  maxIndustryDF$maxIndustryCleaned[maxIndustryDF$maxIndustry==industry] <- industry
+} # TODO this is the problem
 
 # plot a map of the results
 shapeFilename <- "/home/eli/Data/ACS/shapefiles/cb_2015_all"
 allPUMAregions <- readShapeSpatial(shapeFilename)
 allPUMAregions@data <- merge(allPUMAregions@data, maxIndustryDF,by.x="PUMACE10",by.y="PUMA")
 
-plot(allPUMAregions,col=allPUMAregions@data$maxIndustryIdx,
-     xlim=c(-120,-80),ylim=c(30,40),border=FALSE)
+#png("USindustry.png")
+plot(allPUMAregions,col=allPUMAregions@data$maxIndustry,
+     xlim=c(-125,-70),ylim=c(35,40),border=FALSE)
+legend("topleft", fill=allPUMAregions@data$maxIndustry, legend=maxIndustryNames, col=allPUMAregions@data$maxIndustry)
+#dev.off()
 # TODO make this map actually legible
 
+# library("ggplot2")
+# library("mapproj")
+# library("ggmap")
+# allPUMAregions@data$id <- rownames(allPUMAregions@data)
+# allPUMAregions.df <- fortify(allPUMAregions)
+# allPUMAregions.df <- merge(allPUMAregions.df,allPUMAregions@data,"id")
+# ggplot() +
+#   geom_polygon(data = allPUMAregions.df,
+#               aes(x = long, y = lat, group = group, fill = maxIndustry),
+#               color = "black", size = 0.25) +
+#   coord_map() +
+#   theme_nothing(legend=TRUE)
