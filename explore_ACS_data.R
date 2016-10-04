@@ -31,24 +31,25 @@ maxIndustryNames <- industryNames$V2[maxIndustryNamesIdx]
 
 # tidy this data to make it display better
 setOfMaxIndustries <- sort(unique(maxIndustryDF$maxIndustry))
-setOfMaxIndustries <- as.data.frame(setOfMaxIndustries)
 maxIndustryDF$maxIndustryCleaned <- maxIndustryDF$maxIndustry
-for (industry in setOfMaxIndustries){
-  maxIndustryDF$maxIndustryCleaned[maxIndustryDF$maxIndustry==industry] <- industry
-} # TODO this is the problem
+for (idx in 1:length(setOfMaxIndustries)){
+  maxIndustryDF$maxIndustryCleaned <- replace(maxIndustryDF$maxIndustryCleaned, maxIndustryDF$maxIndustry==setOfMaxIndustries[idx], idx)
+}
 
 # plot a map of the results
 shapeFilename <- "/home/eli/Data/ACS/shapefiles/cb_2015_all"
 allPUMAregions <- readShapeSpatial(shapeFilename)
 allPUMAregions@data <- merge(allPUMAregions@data, maxIndustryDF,by.x="PUMACE10",by.y="PUMA")
+# TODO this merge is broken
 
 #png("USindustry.png")
-plot(allPUMAregions,col=allPUMAregions@data$maxIndustry,
+plot(allPUMAregions,col=allPUMAregions@data$maxIndustryCleaned,
      xlim=c(-125,-70),ylim=c(35,40),border=FALSE)
-legend("topleft", fill=allPUMAregions@data$maxIndustry, legend=maxIndustryNames, col=allPUMAregions@data$maxIndustry)
+legend("topleft", fill=allPUMAregions@data$maxIndustryCleaned, legend=maxIndustryNames, col=allPUMAregions@data$maxIndustryCleaned)
 #dev.off()
 # TODO make this map actually legible
 
+## Why does this not plot the continental US?
 # library("ggplot2")
 # library("mapproj")
 # library("ggmap")
@@ -57,7 +58,7 @@ legend("topleft", fill=allPUMAregions@data$maxIndustry, legend=maxIndustryNames,
 # allPUMAregions.df <- merge(allPUMAregions.df,allPUMAregions@data,"id")
 # ggplot() +
 #   geom_polygon(data = allPUMAregions.df,
-#               aes(x = long, y = lat, group = group, fill = maxIndustry),
+#               aes(x = long, y = lat, group = group, fill = maxIndustryCleaned),
 #               color = "black", size = 0.25) +
 #   coord_map() +
 #   theme_nothing(legend=TRUE)
