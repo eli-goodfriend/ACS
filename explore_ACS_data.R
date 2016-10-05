@@ -21,6 +21,7 @@ maxIndustryIdx <- apply(geographyIndustryTable,1,which.max)
 maxIndustry <- industryAlone[maxIndustryIdx]
 maxIndustryDF <- as.data.frame(maxIndustry)
 maxIndustryDF$PUMA <- rownames(as.data.frame(maxIndustryIdx))
+maxIndustryDF$PUMA <- formatC(as.numeric(maxIndustryDF$PUMA),width=5,flag="0")
 
 # pull out the industry names
 setOfMaxIndustries <- sort(unique(maxIndustryDF$maxIndustry))
@@ -35,30 +36,23 @@ maxIndustryDF$maxIndustryCleaned <- maxIndustryDF$maxIndustry
 for (idx in 1:length(setOfMaxIndustries)){
   maxIndustryDF$maxIndustryCleaned <- replace(maxIndustryDF$maxIndustryCleaned, maxIndustryDF$maxIndustry==setOfMaxIndustries[idx], idx)
 }
+maxIndustryDF$maxIndustryCleaned <- as.factor(maxIndustryDF$maxIndustryCleaned)
 
 # plot a map of the results
 shapeFilename <- "/home/eli/Data/ACS/shapefiles/cb_2015_all"
 allPUMAregions <- readShapeSpatial(shapeFilename)
-allPUMAregions@data <- merge(allPUMAregions@data, maxIndustryDF,by.x="PUMACE10",by.y="PUMA")
-# TODO this merge is broken
-
-#png("USindustry.png")
-plot(allPUMAregions,col=allPUMAregions@data$maxIndustryCleaned,
-     xlim=c(-125,-70),ylim=c(35,40),border=FALSE)
-legend("topleft", fill=allPUMAregions@data$maxIndustryCleaned, legend=maxIndustryNames, col=allPUMAregions@data$maxIndustryCleaned)
-#dev.off()
-# TODO make this map actually legible
-
-## Why does this not plot the continental US?
-# library("ggplot2")
-# library("mapproj")
-# library("ggmap")
-# allPUMAregions@data$id <- rownames(allPUMAregions@data)
-# allPUMAregions.df <- fortify(allPUMAregions)
-# allPUMAregions.df <- merge(allPUMAregions.df,allPUMAregions@data,"id")
-# ggplot() +
-#   geom_polygon(data = allPUMAregions.df,
-#               aes(x = long, y = lat, group = group, fill = maxIndustryCleaned),
-#               color = "black", size = 0.25) +
-#   coord_map() +
-#   theme_nothing(legend=TRUE)
+library("ggplot2")
+library("mapproj")
+library("ggmap")
+library("plyr")
+allPUMAregions@data$id <- rownames(allPUMAregions@data)
+allPUMAregions.df <- fortify(allPUMAregions)
+allPUMAregions.df <- join(allPUMAregions.df,allPUMAregions@data,by="id")
+allPUMAregions.df <- merge(allPUMAregions.df, maxIndustryDF, by.x="PUMACE10", by.y="PUMA")
+ggplot() +
+  geom_polygon(data = allPUMAregions.df,
+              aes(x = long, y = lat, group = group, fill = maxIndustryCleaned)) +
+  coord_map() +
+  theme_nothing(legend=TRUE) +
+  xlim(-120,-80) +
+  scale_color_discrete(name="Most common industry",breaks=1:16,labels=maxIndustryNames)
