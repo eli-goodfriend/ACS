@@ -22,3 +22,7 @@ for (state in stateNums){
 
 plot(allStates)
 writeSpatialShape(allStates,"/home/eli/Data/ACS/shapefiles/cb_2015_all")
+
+allPUMAregions.df <- fortify(allStates, region="PUMACE10")
+save(allPUMAregions.df, file="/home/eli/Data/ACS/shapefiles/cb_2015_all.df")
+

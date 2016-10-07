@@ -7,8 +7,9 @@ personFileB <- "/home/eli/Data/ACS/ss14pusb.csv"
 ffOutputName <- "/home/eli/Data/ACS/people.ff"
 people <- read.csv.ffdf(file=personFileA, header=TRUE, VERBOSE=TRUE, 
                         first.rows=10000, next.rows=50000)
-#peopleB <- read.csv.ffdf(file=personFileB, header=TRUE, VERBOSE=TRUE, 
-#                         first.rows=10000, next.rows=50000)
+peopleB <- read.csv.ffdf(file=personFileB, header=TRUE, VERBOSE=TRUE, 
+                         first.rows=10000, next.rows=50000)
+people <- ffdfappend(people,peopleB)
 
 # pull interesting data, combine, and write
 serialno <- people$SERIALNO

@@ -20,8 +20,11 @@ geographyIndustryTable <- table(geographyForIndustry, industryAlone)
 maxIndustryIdx <- apply(geographyIndustryTable,1,which.max)
 maxIndustry <- industryAlone[maxIndustryIdx]
 maxIndustryDF <- as.data.frame(maxIndustry)
+
+# clean up PUMA so it matches the shapefile for plotting
 maxIndustryDF$PUMA <- rownames(as.data.frame(maxIndustryIdx))
-maxIndustryDF$PUMA <- formatC(as.numeric(maxIndustryDF$PUMA),width=5,flag="0")
+maxIndustryDF$PUMA <- sprintf("%05d",as.numeric(maxIndustryDF$PUMA))
+maxIndustryDF$PUMA <- as.factor(maxIndustryDF$PUMA)
 
 # pull out the industry names
 setOfMaxIndustries <- sort(unique(maxIndustryDF$maxIndustry))
@@ -39,20 +42,19 @@ for (idx in 1:length(setOfMaxIndustries)){
 maxIndustryDF$maxIndustryCleaned <- as.factor(maxIndustryDF$maxIndustryCleaned)
 
 # plot a map of the results
-shapeFilename <- "/home/eli/Data/ACS/shapefiles/cb_2015_all"
-allPUMAregions <- readShapeSpatial(shapeFilename)
 library("ggplot2")
 library("mapproj")
 library("ggmap")
 library("plyr")
-allPUMAregions@data$id <- rownames(allPUMAregions@data)
-allPUMAregions.df <- fortify(allPUMAregions)
-allPUMAregions.df <- join(allPUMAregions.df,allPUMAregions@data,by="id")
-allPUMAregions.df <- merge(allPUMAregions.df, maxIndustryDF, by.x="PUMACE10", by.y="PUMA")
-ggplot() +
+load("/home/eli/Data/ACS/shapefiles/cb_2015_all.df")
+allPUMAregions.df <- merge(allPUMAregions.df, maxIndustryDF, by.x="id", by.y="PUMA",all.x="TRUE")
+allPUMAregions.df <- allPUMAregions.df[order(allPUMAregions.df$order), ]
+plotOfMap <- ggplot() +
   geom_polygon(data = allPUMAregions.df,
               aes(x = long, y = lat, group = group, fill = maxIndustryCleaned)) +
   coord_map() +
   theme_nothing(legend=TRUE) +
-  xlim(-120,-80) +
-  scale_color_discrete(name="Most common industry",breaks=1:16,labels=maxIndustryNames)
+  xlim(-130,-65) +
+  ylim(20,50) +
+  scale_fill_hue("Most common industry in region",l = 40,labels = maxIndustryNames)
+ggsave(plotOfMap, file="prettyPlot.png", type="cairo-png", width=15, height=8)
