@@ -16,8 +16,23 @@ serialno <- people$SERIALNO
 geography <- people$PUMA
 industry <- people$INDP
 timesMarried <- people$MARHT
-timeLeaveForWork <- people$JWDP
+weight <- people$PWGTP
+age <- people$AGEP
+transportToWork <- people$JWTR
+maritalStatus <- people$MAR
+highestDegree <- people$SCHL
+gender <- people$SEX # 1 = male, 2 = female. of course.
+wages <- people$WAGP # past twelve months
+workHoursPerWeek <- people$WKHP
+fieldOfDegree1 <- people$FOD1P # at least a Bachelor's
+fieldOfDegree2 <- people$FOD2P
+totalIncome <- people$PINCP # signed, can be negative
+incomeToPovertyRatio <- people$POVPIP
+race <- people$RAC1P # the most coarse-grained of the race variables
+#TODO Hispanic ethnicity, immigration background
 
-dataToWrite <- ffdf(serialno, geography, industry, 
-                    timesMarried, timeLeaveForWork)
+dataToWrite <- ffdf(serialno, geography, industry, timesMarried, weight, age,
+                    transportToWork, maritalStatus, highestDegree, gender,
+                    wages, workHoursPerWeek, fieldOfDegree1, fieldOfDegree2,
+                    totalIncome, incomeToPovertyRatio, race)
 write.csv.ffdf(dataToWrite, file=ffOutputName)

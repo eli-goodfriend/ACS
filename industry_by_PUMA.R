@@ -1,4 +1,5 @@
-# load ff format ACS data and play with it
+# what is the most common industry in each PUMA region?
+# TODO adjust using ACS magic repeated values
 library("ff")
 library("ffbase")
 library("maptools")
@@ -11,8 +12,11 @@ industryAlone <- people$industry
 idx <- which(!is.na(industryAlone)[])
 industryAlone <- industryAlone[idx] # only entries that have an industry
 industryTable <- sort(table(industryAlone), decreasing=TRUE)
-cat("The most common industry is", names(industryTable[1]), ", with", 
-      as.character(industryTable[1]), "workers")
+cat("The most common three industries are:\n")
+cat(names(industryTable[1]), ", with", as.character(industryTable[1]), "workers,")
+cat(names(industryTable[2]), ", with", as.character(industryTable[2]), "workers, and")
+cat(names(industryTable[3]), ", with", as.character(industryTable[3]), "workers.")
+
 
 # what is the most common industry in each PUMA region?
 geographyForIndustry <- people$geography[idx]
@@ -33,15 +37,8 @@ industryNames <- read.table("/home/eli/Data/ACS/industries.txt", sep=".")
 maxIndustryNamesIdx <- match(setOfMaxIndustries,industryNames$V1)
 maxIndustryNames <- industryNames$V2[maxIndustryNamesIdx]
 
-# tidy this data to make it display better
-setOfMaxIndustries <- sort(unique(maxIndustryDF$maxIndustry))
-maxIndustryDF$maxIndustryCleaned <- maxIndustryDF$maxIndustry
-for (idx in 1:length(setOfMaxIndustries)){
-  maxIndustryDF$maxIndustryCleaned <- replace(maxIndustryDF$maxIndustryCleaned, maxIndustryDF$maxIndustry==setOfMaxIndustries[idx], idx)
-}
-maxIndustryDF$maxIndustryCleaned <- as.factor(maxIndustryDF$maxIndustryCleaned)
-
 # plot a map of the results
+maxIndustryDF$maxIndustry <- as.factor(maxIndustryDF$maxIndustry) # to make discrete color plot
 library("ggplot2")
 library("mapproj")
 library("ggmap")
@@ -49,12 +46,16 @@ library("plyr")
 load("/home/eli/Data/ACS/shapefiles/cb_2015_all.df")
 allPUMAregions.df <- merge(allPUMAregions.df, maxIndustryDF, by.x="id", by.y="PUMA",all.x="TRUE")
 allPUMAregions.df <- allPUMAregions.df[order(allPUMAregions.df$order), ]
+customPalette = c("tomato4","darkgrey","dimgrey","tan3","steelblue1","steelblue2","steelblue3",
+                  "green","lightgoldenrod1","lightgoldenrod2","lightgoldenrod3","darkorchid1",
+                  "darkorchid4","red","hotpink1","hotpink2","hotpink3","yellow","olivedrab1",
+                  "olivedrab4")
 plotOfMap <- ggplot() +
   geom_polygon(data = allPUMAregions.df,
-              aes(x = long, y = lat, group = group, fill = maxIndustryCleaned)) +
+              aes(x = long, y = lat, group = group, fill = maxIndustry)) +
   coord_map() +
   theme_nothing(legend=TRUE) +
-  xlim(-130,-65) +
-  ylim(20,50) +
+  xlim(-130, -65) +
+  ylim(25,50) +
   scale_fill_hue("Most common industry in region",l = 40,labels = maxIndustryNames)
-ggsave(plotOfMap, file="prettyPlot.png", type="cairo-png", width=15, height=8)
+ggsave(plotOfMap, file="prettyPlot.png", type="cairo-png", width=20, height=10)
