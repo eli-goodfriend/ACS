@@ -13,7 +13,8 @@ people <- ffdfappend(people,peopleB)
 
 # pull interesting data, combine, and write
 serialno <- people$SERIALNO
-geography <- people$PUMA
+PUMA <- people$PUMA
+state <- people$ST
 industry <- people$INDP
 timesMarried <- people$MARHT
 weight <- people$PWGTP
@@ -31,7 +32,7 @@ incomeToPovertyRatio <- people$POVPIP
 race <- people$RAC1P # the most coarse-grained of the race variables
 #TODO Hispanic ethnicity, immigration background
 
-dataToWrite <- ffdf(serialno, geography, industry, timesMarried, weight, age,
+dataToWrite <- ffdf(serialno, PUMA, state, industry, timesMarried, weight, age,
                     transportToWork, maritalStatus, highestDegree, gender,
                     wages, workHoursPerWeek, fieldOfDegree1, fieldOfDegree2,
                     totalIncome, incomeToPovertyRatio, race)

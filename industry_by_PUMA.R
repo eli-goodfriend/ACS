@@ -17,18 +17,19 @@ cat(names(industryTable[1]), ", with", as.character(industryTable[1]), "workers,
 cat(names(industryTable[2]), ", with", as.character(industryTable[2]), "workers, and")
 cat(names(industryTable[3]), ", with", as.character(industryTable[3]), "workers.")
 
+# construct unique geography codes from state and PUMA
+PUMA_ram <- as.ram(people$PUMA[idx])
+PUMA_ram <- sprintf("%05d",as.numeric(PUMA_ram))
+states_ram <- as.ram(people$state[idx])
+states_ram <- sprintf("%02d",as.numeric(states_ram))
+geography <- paste(states_ram,PUMA_ram,sep="")
 
 # what is the most common industry in each PUMA region?
-geographyForIndustry <- people$geography[idx]
-geographyIndustryTable <- table(geographyForIndustry, industryAlone)
+geographyIndustryTable <- table(geography, industryAlone)
 maxIndustryIdx <- apply(geographyIndustryTable,1,which.max)
 maxIndustry <- industryAlone[maxIndustryIdx]
 maxIndustryDF <- as.data.frame(maxIndustry)
-
-# clean up PUMA so it matches the shapefile for plotting
-maxIndustryDF$PUMA <- rownames(as.data.frame(maxIndustryIdx))
-maxIndustryDF$PUMA <- sprintf("%05d",as.numeric(maxIndustryDF$PUMA))
-maxIndustryDF$PUMA <- as.factor(maxIndustryDF$PUMA)
+maxIndustryDF$geography <- rownames(as.data.frame(maxIndustryIdx))
 
 # pull out the industry names
 setOfMaxIndustries <- sort(unique(maxIndustryDF$maxIndustry))
@@ -44,12 +45,8 @@ library("mapproj")
 library("ggmap")
 library("plyr")
 load("/home/eli/Data/ACS/shapefiles/cb_2015_all.df")
-allPUMAregions.df <- merge(allPUMAregions.df, maxIndustryDF, by.x="id", by.y="PUMA",all.x="TRUE")
+allPUMAregions.df <- merge(allPUMAregions.df, maxIndustryDF, by.x="id", by.y="geography",all.x="TRUE")
 allPUMAregions.df <- allPUMAregions.df[order(allPUMAregions.df$order), ]
-customPalette = c("tomato4","darkgrey","dimgrey","tan3","steelblue1","steelblue2","steelblue3",
-                  "green","lightgoldenrod1","lightgoldenrod2","lightgoldenrod3","darkorchid1",
-                  "darkorchid4","red","hotpink1","hotpink2","hotpink3","yellow","olivedrab1",
-                  "olivedrab4")
 plotOfMap <- ggplot() +
   geom_polygon(data = allPUMAregions.df,
               aes(x = long, y = lat, group = group, fill = maxIndustry)) +

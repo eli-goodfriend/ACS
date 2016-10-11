@@ -20,9 +20,11 @@ for (state in stateNums){
   }
 }
 
+allStates@data$geography <- paste(allStates@data$STATEFP10,allStates@data$PUMACE10,sep="")
 plot(allStates)
 writeSpatialShape(allStates,"/home/eli/Data/ACS/shapefiles/cb_2015_all")
 
-allPUMAregions.df <- fortify(allStates, region="PUMACE10")
+gpclibPermit()
+allPUMAregions.df <- fortify(allStates, region="geography")
 save(allPUMAregions.df, file="/home/eli/Data/ACS/shapefiles/cb_2015_all.df")
 
