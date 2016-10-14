@@ -2,6 +2,22 @@
 library("ff")
 library("ffbase")
 library("maptools")
+library("plyr")
+
+plotMap <- function(dataframe, column, labelNames, fileName){    
+  library("ggplot2")
+  library("mapproj")
+  library("ggmap")
+  plotOfMap <- ggplot() +
+    geom_polygon(data = dataframe,
+                 aes(x = long, y = lat, group = group, fill = column)) +
+    coord_map() +
+    theme_nothing(legend=TRUE) +
+    xlim(-130, -65) +
+    ylim(25,50) +
+    scale_fill_hue("Most common industry in region",l = 40,labels = labelNames)
+  ggsave(plotOfMap, file=fileName, type="cairo-png", width=20, height=10)
+}
 
 filename <- "/home/eli/Data/ACS/people.ff"
 people <- read.csv.ffdf(file=filename)
@@ -26,12 +42,12 @@ for (i in seq(1,numIndustry)){
   industryIndices <- which(industryAlone==thisIndustry)
   industryCounts[i] <- industryCounts[i] + sum(weights[industryIndices])
 }
-allIndustryCounts <- data.frame(industryTypes, industryCounts)
-allIndustryCounts <- allIndustryCounts[order(-industryCounts),]
+nationalIndustryCounts <- data.frame(industryTypes, industryCounts)
+nationalIndustryCounts <- nationalIndustryCounts[order(-industryCounts),]
 cat("The most common three industries are (weighted):\n")
-cat(as.character(allIndustryCounts$industryTypes[1]), ", with", as.character(allIndustryCounts$industryCounts[1]), "workers,")
-cat(as.character(allIndustryCounts$industryTypes[2]), ", with", as.character(allIndustryCounts$industryCounts[2]), "workers, and")
-cat(as.character(allIndustryCounts$industryTypes[3]), ", with", as.character(allIndustryCounts$industryCounts[3]), "workers.")
+cat(as.character(nationalIndustryCounts$industryTypes[1]), ", with", as.character(nationalIndustryCounts$industryCounts[1]), "workers,")
+cat(as.character(nationalIndustryCounts$industryTypes[2]), ", with", as.character(nationalIndustryCounts$industryCounts[2]), "workers, and")
+cat(as.character(nationalIndustryCounts$industryTypes[3]), ", with", as.character(nationalIndustryCounts$industryCounts[3]), "workers.")
 
 # construct unique geography codes from state and PUMA
 PUMA_ram <- as.ram(people$PUMA[idx])
@@ -74,26 +90,39 @@ setOfMaxIndustries <- sort(unique(maxIndustryDF$maxIndustry))
 setOfMaxIndustries <- formatC(setOfMaxIndustries,width=4,flag="0")
 industryNames <- read.table("/home/eli/Data/ACS/industries.txt", sep=".")
 maxIndustryNamesIdx <- match(setOfMaxIndustries,industryNames$V1)
-maxIndustryNames <- industryNames$V2[maxIndustryNamesIdx]
+maxIndustryNames <- industryNames$V3[maxIndustryNamesIdx]
 
 # plot a map of the results: all industries separated
 # this is illegible
 maxIndustryDF$maxIndustry <- as.factor(maxIndustryDF$maxIndustry) # to make discrete color plot
-library("ggplot2")
-library("mapproj")
-library("ggmap")
-library("plyr")
 load("/home/eli/Data/ACS/shapefiles/cb_2015_all.df")
 allPUMAregions.df <- merge(allPUMAregions.df, maxIndustryDF, by.x="id", by.y="geography",all.x="TRUE")
 allPUMAregions.df <- allPUMAregions.df[order(allPUMAregions.df$order), ]
-plotOfMap <- ggplot() +
-  geom_polygon(data = allPUMAregions.df,
-              aes(x = long, y = lat, group = group, fill = maxIndustry)) +
-  coord_map() +
-  theme_nothing(legend=FALSE) +
-  xlim(-130, -65) +
-  ylim(25,50) +
-  scale_fill_hue("Most common industry in region",l = 40,labels = maxIndustryNames)
-ggsave(plotOfMap, file="prettyPlot.png", type="cairo-png", width=20, height=10)
+plotMap(allPUMAregions.df, allPUMAregions.df$maxIndustry, maxIndustryNames, "allIndustries.png")  
+  
 
-# TODO plot a map of the results: grouping industries by type
+# plot a map of the results: group industries by type
+# this is still too hard to read
+industryCategories <- unique(industryNames$V2)
+allPUMAregions.df$maxIndustryCategory <- as.numeric(as.character(allPUMAregions.df$maxIndustry))
+allPUMAregions.df$maxIndustryCategory <- formatC(allPUMAregions.df$maxIndustryCategory,width=4,flag="0")
+allPUMAregions.df$maxIndustryCategory <- factor(allPUMAregions.df$maxIndustryCategory)
+for (category in industryCategories){ # TODO vectorize
+  inCategory <- industryNames$V1[which(industryNames$V2==category)]
+  allPUMAregions.df$maxIndustryCategory[allPUMAregions.df$maxIndustryCategory %in% inCategory] <- inCategory[1]
+}
+allPUMAregions.df$maxIndustryCategory <- factor(allPUMAregions.df$maxIndustryCategory)
+plotMap(allPUMAregions.df, allPUMAregions.df$maxIndustryCategory, industryCategories, "groupByType.png")  
+
+
+# plot a map of the results: filter industries by national prevalence
+# this is not very useful either
+topIndustries <- nationalIndustryCounts$industryTypes[1:10]
+lessPopularIdx <- !maxIndustryDF$maxIndustry %in% topIndustries
+maxIndustryDF$maxIndustryReduced <- maxIndustryDF$maxIndustry
+maxIndustryDF$maxIndustryReduced[lessPopularIdx] <- NA
+allPUMAregions.df <- merge(allPUMAregions.df, maxIndustryDF, by.x="id", by.y="geography",all.x="TRUE")
+allPUMAregions.df <- allPUMAregions.df[order(allPUMAregions.df$order), ]
+plotMap(allPUMAregions.df, allPUMAregions.df$maxIndustryReduced, maxIndustryNames, "mostCommon.png")  
+
+
