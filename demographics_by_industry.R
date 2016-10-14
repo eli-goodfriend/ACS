@@ -15,6 +15,7 @@ industry <- as.factor(as.ram(people$industry))
 industry.num <- as.ram(people$industry)
 povertyRatio <- as.ram(people$incomeToPovertyRatio)
 age <- as.ram(people$age)
+transportToWork <- as.ram(people$transportToWork)
 demographics.df <- data.frame(gender,race,income,industry,povertyRatio,age,education)
 
 plotDemographics <- function(data, index){
@@ -57,4 +58,8 @@ plotDemographics(demographics.df, retailIndices)
 # demographics: farming (crops)
 farmingIndices <- which(industry==170)
 plotDemographics(demographics.df, farmingIndices)
+
+# demographics: bicycle commuter
+bicycleIndices <- which(transportToWork==9)
+plotDemographics(demographics.df, bicycleIndices)
 
