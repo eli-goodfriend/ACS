@@ -1,4 +1,5 @@
 # what is the most common industry in each PUMA region?
+# this doesn't work very well, because industry is fine grained and PUMA regions are small
 library("ff")
 library("ffbase")
 library("maptools")
@@ -49,14 +50,9 @@ cat(as.character(nationalIndustryCounts$industryTypes[1]), ", with", as.characte
 cat(as.character(nationalIndustryCounts$industryTypes[2]), ", with", as.character(nationalIndustryCounts$industryCounts[2]), "workers, and")
 cat(as.character(nationalIndustryCounts$industryTypes[3]), ", with", as.character(nationalIndustryCounts$industryCounts[3]), "workers.")
 
-# construct unique geography codes from state and PUMA
-PUMA_ram <- as.ram(people$PUMA[idx])
-PUMA_ram <- sprintf("%05d",as.numeric(PUMA_ram))
-states_ram <- as.ram(people$state[idx])
-states_ram <- sprintf("%02d",as.numeric(states_ram))
-geography <- paste(states_ram,PUMA_ram,sep="")
-
 # what is the most common industry in each PUMA region? 
+geography <- as.ram(people$geography[idx])
+geography <- sprintf("%07d",as.numeric(geography))
 # unweighted
 geographyIndustryTable <- table(geography, industryAlone)
 maxIndustryIdx <- apply(geographyIndustryTable,1,which.max)

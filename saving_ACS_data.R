@@ -11,7 +11,6 @@ peopleB <- read.csv.ffdf(file=personFileB, header=TRUE, VERBOSE=TRUE,
                          first.rows=10000, next.rows=50000)
 people <- ffdfappend(people,peopleB)
 
-# pull interesting data, combine, and write
 serialno <- people$SERIALNO
 PUMA <- people$PUMA
 state <- people$ST
@@ -32,8 +31,16 @@ incomeToPovertyRatio <- people$POVPIP
 race <- people$RAC1P # the most coarse-grained of the race variables
 #TODO Hispanic ethnicity, immigration background
 
+# construct unique geography codes from state and PUMA
+PUMA_ram <- as.ram(PUMA)
+PUMA_ram <- sprintf("%05d",as.numeric(PUMA_ram))
+states_ram <- as.ram(state)
+states_ram <- sprintf("%02d",as.numeric(states_ram))
+geography <- paste(states_ram,PUMA_ram,sep="")
+geography <- as.ff(as.numeric(geography)) # when unpacking, need to add leading 0
+
 dataToWrite <- ffdf(serialno, PUMA, state, industry, timesMarried, weight, age,
                     transportToWork, maritalStatus, highestDegree, gender,
                     wages, workHoursPerWeek, fieldOfDegree1, fieldOfDegree2,
-                    totalIncome, incomeToPovertyRatio, race)
+                    totalIncome, incomeToPovertyRatio, race, geography)
 write.csv.ffdf(dataToWrite, file=ffOutputName)
