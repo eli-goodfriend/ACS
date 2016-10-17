@@ -40,13 +40,9 @@ plotMap <- function(dataframe, column, titleText, fileName){
 }
 
 # primary function
-plotByPUMA <- function(attributeToPlot, desiredAttributes, plotTitle, plotName){
+plotByPUMA <- function(acsData, attributeToPlot, desiredAttributes, plotTitle, plotName){
   library("ff")
   library("ffbase")
-  library("maptools")
-  library("plyr")
-  filename <- "/home/eli/Data/ACS/people.ff"
-  acsData <- read.csv.ffdf(file=filename)
   
   attribute <- as.ram(acsData[,c(attributeToPlot)])
   indices <- which(!is.na(attribute))
