@@ -4,6 +4,11 @@ library("ffbase")
 library("maptools")
 library("plyr")
 
+attributeToPlot = "transportToWork"
+desiredAttributes <- c(9,10)
+plotTitle <- "Percent of people who walk or bike to work"
+plotName <- "bicycle.png"
+
 plotMap <- function(dataframe, column, titleText, fileName){    
   library("ggplot2")
   library("mapproj")
@@ -47,7 +52,7 @@ plotMap <- function(dataframe, column, titleText, fileName){
 filename <- "/home/eli/Data/ACS/people.ff"
 acsData <- read.csv.ffdf(file=filename)
 
-attribute <- as.ram(acsData$transportToWork)
+attribute <- as.ram(acsData[,c(attributeToPlot)])
 indices <- which(!is.na(attribute))
 attribute <- attribute[indices]
 attribute <- as.factor(attribute)
@@ -62,7 +67,6 @@ people <- data.frame(attribute, geography, weight)
 # what subset of the attribute are we interested in?
 # in this case, we are interested in finding the percent of people who get to
 # work via bicycling or walking (out of the total people who work)
-desiredAttributes <- c(9,10)
 people$hasDesiredAttribute <- people$attribute %in% desiredAttributes
 
 # what is the percentage overall?
@@ -86,6 +90,6 @@ totalPeoplePerPUMA$percentWithAttribute <- totalPeoplePerPUMA$weight / totalPeop
 load("/home/eli/Data/ACS/shapefiles/cb_2015_all.df") # loads allPUMAregions.df
 allPUMAregions.df <- merge(allPUMAregions.df, totalPeoplePerPUMA, by.x="id", by.y="geography",all.x="TRUE")
 allPUMAregions.df <- allPUMAregions.df[order(allPUMAregions.df$order), ]
-plotMap(allPUMAregions.df, allPUMAregions.df$percentWithAttribute, "Percent of people who walk or bike to work", "bicyclists.png")
+plotMap(allPUMAregions.df, allPUMAregions.df$percentWithAttribute, plotTitle, plotName)
 
 
