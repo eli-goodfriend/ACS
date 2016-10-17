@@ -1,0 +1,66 @@
+# plot percentages of attributes by PUMA region
+library("ff")
+library("ffbase")
+library("maptools")
+library("plyr")
+
+plotMap <- function(dataframe, column, legendText, fileName){    
+  library("ggplot2")
+  library("mapproj")
+  library("ggmap")
+  plotOfMap <- ggplot() +
+    geom_polygon(data = dataframe,
+                 aes(x = long, y = lat, group = group, fill = column)) +
+    coord_map() +
+    theme_nothing(legend=TRUE) +
+    xlim(-130, -65) +
+    ylim(25,50) +
+    scale_fill_gradient(legendText)
+  ggsave(plotOfMap, file=fileName, type="cairo-png", width=20, height=10)
+}
+
+filename <- "/home/eli/Data/ACS/people.ff"
+acsData <- read.csv.ffdf(file=filename)
+
+attribute <- as.ram(acsData$transportToWork)
+indices <- which(!is.na(attribute))
+attribute <- attribute[indices]
+attribute <- as.factor(attribute)
+
+geography <- as.ram(acsData$geography[indices])
+geography <- sprintf("%07d",as.numeric(geography))
+
+weight <- as.ram(acsData$weight[indices])
+
+people <- data.frame(attribute, geography, weight)
+
+# what subset of the attribute are we interested in?
+# in this case, we are interested in finding the percent of people who get to
+# work via bicycling or walking (out of the total people who work)
+desiredAttributes <- c(9,10)
+people$hasDesiredAttribute <- people$attribute %in% desiredAttributes
+
+# what is the percentage overall?
+totalPeople <- sum(people$weight)
+totalWithDesiredAttribute <- sum(people$weight[which(people$hasDesiredAttribute)])
+nationalPercentage <- totalWithDesiredAttribute / totalPeople *100
+
+# what is the percentage in each PUMA region?
+totalPeoplePerPUMA <- aggregate(weight~geography, people, sum)
+names(totalPeoplePerPUMA)[names(totalPeoplePerPUMA) == 'weight'] <- 'totalWeight'
+
+totalWithDesiredAttributePerPUMA <- aggregate(weight~geography+hasDesiredAttribute, people, sum)
+totalWithDesiredAttributePerPUMA <- totalWithDesiredAttributePerPUMA[which(totalWithDesiredAttributePerPUMA$hasDesiredAttribute),]
+totalPeoplePerPUMA <- merge(totalPeoplePerPUMA, totalWithDesiredAttributePerPUMA, by='geography', all.x=TRUE)
+totalPeoplePerPUMA$hasDesiredAttribute <- NULL
+totalPeoplePerPUMA[is.na(totalPeoplePerPUMA)] <- 0
+
+totalPeoplePerPUMA$percentWithAttribute <- totalPeoplePerPUMA$weight / totalPeoplePerPUMA$totalWeight * 100
+
+# plot it
+load("/home/eli/Data/ACS/shapefiles/cb_2015_all.df") # loads allPUMAregions.df
+allPUMAregions.df <- merge(allPUMAregions.df, totalPeoplePerPUMA, by.x="id", by.y="geography",all.x="TRUE")
+allPUMAregions.df <- allPUMAregions.df[order(allPUMAregions.df$order), ]
+plotMap(allPUMAregions.df, allPUMAregions.df$percentWithAttribute, "Percent of people who walk or bike to work", "bicyclists.png")
+
+
