@@ -4,6 +4,7 @@ plotMap <- function(dataframe, column, titleText, fileName){
   library("mapproj")
   library("ggmap")
   library("gridExtra")
+  
   limits = c(min(column),max(column))
   continentalPlot <- ggplot() +
     geom_polygon(data = dataframe,
@@ -82,5 +83,3 @@ plotByPUMA <- function(acsData, attributeToPlot, desiredAttributes, plotTitle, p
   allPUMAregions.df <- allPUMAregions.df[order(allPUMAregions.df$order), ]
   plotMap(allPUMAregions.df, allPUMAregions.df$percentWithAttribute, plotTitle, plotName)
 }
-
-

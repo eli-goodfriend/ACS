@@ -29,3 +29,15 @@ desiredAttributes <- c(7860,7870,7880,7890)
 plotTitle <- "Percent of people who work in education"
 plotName <- "education.png"
 plotByPUMA(acsData, attributeToPlot, desiredAttributes, plotTitle, plotName)
+
+attributeToPlot <- "totalIncome"
+newAttribute <- integer(length(as.ram(acsData$totalIncome)))
+newAttribute[which(as.ram(acsData$totalIncome) > 100000)] <- 1
+acsData$newAttribute <- as.ff(newAttribute)
+remove(newAttribute)
+plotTitle <- "Percent of people making more than $100,000/yr"
+plotName <- "richPeople.png"
+plotByPUMA(acsData, "newAttribute", c(1), plotTitle, plotName)
+
+
+
