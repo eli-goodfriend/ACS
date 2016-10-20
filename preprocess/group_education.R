@@ -1,30 +1,22 @@
 group_education <- function(education){
   library("car")
-  education <- factor(education, ordered=TRUE)
   
   # 1 - 15 is no high school diploma
-  # TODO make this a loop
-  education <- recode(education,"'1'='15'")
-  education <- recode(education,"'2'='15'")
-  education <- recode(education,"'3'='15'")
-  education <- recode(education,"'4'='15'")
-  education <- recode(education,"'5'='15'")
-  education <- recode(education,"'6'='15'")
-  education <- recode(education,"'7'='15'")
-  education <- recode(education,"'8'='15'")
-  education <- recode(education,"'9'='15'")
-  education <- recode(education,"'10'='15'")
-  education <- recode(education,"'11'='15'")
-  education <- recode(education,"'12'='15'")
-  education <- recode(education,"'13'='15'")
-  education <- recode(education,"'14'='15'")
-  
+  education <- recode(education,"seq(1,15)='No diploma or GED'")
+
   # group together GED and diploma
-  education <- recode(education,"'16'='17'")
+  education <- recode(education,"16:17='High school'")
 
   # group together all partial college
-  education <- recode(education,"'18'='19'")
+  education <- recode(education,"18:19='Some college'")
+  
+  education <- recode(education,"20='Associates'")
+  education <- recode(education,"21='Batchelors'")
+  education <- recode(education,"22='Masters'")
+  education <- recode(education,"23='Professional'")
+  education <- recode(education,"24='Doctoral'")
 
-  education <- factor(education)
+  education <- ordered(education,
+                      levels=c("No diploma or GED","High school","Some college","Associates","Batchelors","Masters","Professional","Doctoral"))
   return(education)
 }

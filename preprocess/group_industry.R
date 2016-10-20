@@ -1,0 +1,26 @@
+group_industry <- function(industry){
+  library("car")
+
+  industry <- recode(industry,"0170:0290='Agriculture'")
+  industry <- recode(industry,"0370:0490='Mining'")
+  industry <- recode(industry,"0570:0690='Utilities'")
+  industry <- recode(industry,"0770='Construction'")
+  industry <- recode(industry,"1070:3990='Manufacturing'")
+  industry <- recode(industry,"4070:4590='Wholesale'")
+  industry <- recode(industry,"4670:5790='Retail'")
+  industry <- recode(industry,"6070:6390='Transportation'")
+  industry <- recode(industry,"6470:6790='Information and media'")
+  industry <- recode(industry,"6870:7190='Banking, real estate, and rentals'")
+  industry <- recode(industry,"7270:7790='Professional services'")
+  industry <- recode(industry,"7860:7890='Education'")
+  industry <- recode(industry,"7970:8290='Medicine'")
+  industry <- recode(industry,"8370:8470='Community services'")
+  industry <- recode(industry,"8560:8690='Entertainment and food services'")
+  industry <- recode(industry,"8770:9290='Personal services'")
+  industry <- recode(industry,"9370:9590='Public service'")
+  industry <- recode(industry,"9670:9870='Military'")
+  industry <- recode(industry,"9920='Unemployed'")
+
+  industry <- factor(industry)
+  return(industry)
+}
