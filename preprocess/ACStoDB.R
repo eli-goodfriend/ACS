@@ -110,20 +110,72 @@ dbSendQuery(
   ) 
 ) 
     
-# make a survey object  
-# TODO this crashes the whole dang computer
-options( "survey.replicates.mse" = TRUE) 
-acs.design <- 									# name the survey object
-  svrepdesign(									
+# # make a survey object  
+# # TODO this crashes the whole dang computer. Because computer or because code?
+# # others on the internet seem to get this code to run fine, so thinking computer
+# options( "survey.replicates.mse" = TRUE) 
+# acs.design <- 									# name the survey object
+#   svrepdesign(									
+#     weight = ~pwgtp , 							# person-level weights are stored in column "pwgtp"
+#     repweights = 'pwgtp[0-9]+' ,				# the acs contains 80 replicate weights, pwgtp1 - pwgtp80.  this [0-9] format captures all numeric values
+#     scale = 4 / 80 ,
+#     rscales = rep( 1 , 80 ) ,
+#     mse = TRUE ,
+#     type = 'JK1' ,
+#     data = tablename , 				
+#     dbtype = "MonetDBLite" ,
+#     dbname = dbfolder
+#   )
+# # workaround for a bug in survey::svrepdesign.character
+# acs.design$mse <- TRUE
+
+# let's just look at Pennsylvania, that's smaller anyway
+PAtablename <- "acs14pa"
+PAnum <- 42 # Pennsylvania's state number
+sql <-
+  sprintf(
+    paste(
+      "CREATE TABLE" ,
+      PAtablename ,
+      "(%s)"
+    ) ,
+    paste(
+      colDecl ,
+      collapse = ", "
+    )
+  )
+dbSendQuery( db , sql )
+sql <- paste("INSERT INTO", PAtablename,
+             "SELECT * FROM", tablename,
+             "WHERE st=", PAnum, ";")
+dbSendQuery( db , sql )
+# make a replicant weight survey design for PA
+# this runs to completion!! YAY!
+pa.acs.design <- 									# name the survey object
+  svrepdesign(
     weight = ~pwgtp , 							# person-level weights are stored in column "pwgtp"
     repweights = 'pwgtp[0-9]+' ,				# the acs contains 80 replicate weights, pwgtp1 - pwgtp80.  this [0-9] format captures all numeric values
     scale = 4 / 80 ,
     rscales = rep( 1 , 80 ) ,
     mse = TRUE ,
     type = 'JK1' ,
-    data = tablename , 				
+    data = PAtablename ,
     dbtype = "MonetDBLite" ,
     dbname = dbfolder
   )
 # workaround for a bug in survey::svrepdesign.character
-acs.design$mse <- TRUE
+pa.acs.design$mse <- TRUE
+
+save( pa.acs.design , file = "~/Data/ACS/pa_design.rda" )
+
+# close the connection to the design object
+close( pa.acs.design )
+
+# remove from memory
+rm( pa.acs.design)
+
+# clear up RAM
+gc()
+
+# disconnect from the current monet database
+dbDisconnect( db , shutdown = TRUE )
