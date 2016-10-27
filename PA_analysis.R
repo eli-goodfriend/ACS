@@ -1,7 +1,8 @@
 # analyse ACS data using survey package and MonetDB database
 # this is only PA right now because trying to make a survey design from
 # the entire US caused my computer to crash
-# cribbed heavily from asdfree
+# cribbed heavily from asdfree by Anthony Damico
+# TODO try the acs package?
 library(survey)
 library(MonetDBLite)
 library(DBI)
@@ -37,7 +38,7 @@ svytotal(
 )
 
 # start by repeating the incorrect analysis I published for the whole US
-# TODO comparing correct vs incorrect?
+# TODO comparing using repeated weights vs not?
 pa.acs.hasincome <- subset(pa.acs, pincp > -20000) # income is bottom coded, so this is all
 svymean(~pincp, pa.acs.hasincome)
 svyquantile( ~pincp , pa.acs.hasincome , c( .25 , .5 , .75 ) )
@@ -47,8 +48,13 @@ svyhist(~pincp, pa.acs.hasincome)
 pa.acs.hasincome.hsonly <- subset(pa.acs.hasincome, schl == 16 | schl ==17)
 svyquantile( ~pincp , pa.acs.hasincome.hsonly , c( .25 , .5 , .75 ) )
 svyby(~pincp, ~schl, pa.acs.hasincome.hsonly, svyquantile, c(0.25,0.5,0.75))
-svyranktest(pincp~schl, pa.acs.hasincome.hsonly) # diploma give significantly more income
-svyboxplot(pincp~schl, pa.acs.hasincome.hsonly)
+svyranktest(pincp~schl, pa.acs.hasincome.hsonly) # diploma gives significantly more income
+
+# income by level of education
+svyby(~pincp, ~education, pa.acs.hasincome, svyquantile, c(0.25,0.5,0.75))
+
+
+
 
 close(pa.acs)
 
