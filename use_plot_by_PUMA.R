@@ -9,7 +9,7 @@ source("~/Dropbox/Code/ACS/plot_by_PUMA.R")
 attributeToPlot = "transportToWork"
 desiredAttributes <- c(9,10)
 plotTitle <- "Percent of people who walk or bike to work"
-plotName <- "bicycle.png"
+plotName <- "walkorbike.png"
 plotByPUMA(acsData, attributeToPlot, desiredAttributes, plotTitle, plotName)
 
 attributeToPlot = "industry"
@@ -38,6 +38,23 @@ remove(newAttribute)
 plotTitle <- "Percent of people making more than $100,000/yr"
 plotName <- "richPeople.png"
 plotByPUMA(acsData, "newAttribute", c(1), plotTitle, plotName)
+
+attributeToPlot <- "workHoursPerWeek"
+# TODO c/p because making this a function broke memory, fix that
+newAttribute <- integer(length(as.ram(acsData$workHoursPerWeek)))
+newAttribute[which(as.ram(acsData$workHoursPerWeek) > 40)] <- 1
+acsData$newAttribute <- as.ff(newAttribute)
+remove(newAttribute)
+plotTitle <- "Percent of people who work more than 40 hours per week"
+plotName <- "hardWorkers.png"
+plotByPUMA(acsData, "newAttribute", c(1), plotTitle, plotName)
+
+attributeToPlot <- "totalIncome"
+plotTitle <- "Median income"
+plotName <- "medianIncome.png"
+#this crashes plotByPUMAMedian(acsData, attributeToPlot, plotTitle, plotName)
+
+
 
 
 

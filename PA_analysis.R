@@ -68,8 +68,28 @@ source("~/Dropbox/Code/ACS/postprocess/boxplotFromQuantiles.R")
 boxplotFromQuantiles(educationQuantiles, educationRange, educationOrder, 
                      "education", "PAincomeEducation.png")
 
+# income by degree type
+degreeQuantiles <- svyby(~pincp, ~degree, pa.acs.hasincome, 
+                            svyquantile, c(0.25,0.5,0.75))
+degreeRange <- aggregate(pincp ~ degree, data=padata, range)
+degreeOrder <- c("Engineering","Math and science","Industry specific",
+                 "Social sciences","Humanities")
+source("~/Dropbox/Code/ACS/postprocess/boxplotFromQuantiles.R")
+boxplotFromQuantiles(degreeQuantiles, degreeRange, degreeOrder, 
+                     "degree", "PAincomeDegree.png")
 
-
+# income by industry type
+industryQuantiles <- svyby(~pincp, ~industry, pa.acs.hasincome, 
+                         svyquantile, c(0.25,0.5,0.75))
+industryRange <- aggregate(pincp ~ industry, data=padata, range)
+industryOrder <- c("Unemployed","Entertainment and food services","Retail",
+                   "Community services","Agriculture","Personal services",
+                   "Military","Medicine","Mining","Construction",
+                   "Professional services","Education","Manufacturing","Utilities",
+                   "Banking, real estate, and rentals","Public service")
+source("~/Dropbox/Code/ACS/postprocess/boxplotFromQuantiles.R")
+boxplotFromQuantiles(industryQuantiles, industryRange, industryOrder, 
+                     "industry", "PAincomeIndustry.png")
 
 close(pa.acs)
 

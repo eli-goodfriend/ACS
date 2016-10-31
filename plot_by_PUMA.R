@@ -83,3 +83,36 @@ plotByPUMA <- function(acsData, attributeToPlot, desiredAttributes, plotTitle, p
   allPUMAregions.df <- allPUMAregions.df[order(allPUMAregions.df$order), ]
   plotMap(allPUMAregions.df, allPUMAregions.df$percentWithAttribute, plotTitle, plotName)
 }
+
+# primary function
+plotByPUMAMedian <- function(acsData, attributeToPlot, plotTitle, plotName){
+  # TODO this crashes memory, fix it
+  library("ff")
+  library("ffbase")
+  library("matrixStats")
+  
+  attribute <- as.ram(acsData[,c(attributeToPlot)])
+  indices <- which(!is.na(attribute))
+  attribute <- attribute[indices]
+
+  geography <- as.ram(acsData$geography[indices])
+  geography <- sprintf("%07d",as.numeric(geography))
+  
+  weight <- as.ram(acsData$weight[indices])
+  
+  people <- data.frame(attribute, geography, weight)
+  
+  # what is the national median?
+  nationalMedian <- weightedMedian(attribute, weight)
+  
+  # what is the median of attribute in each puma region, weighted?
+  medianPerPUMA <- by(people, list(people$geography), function(x) weightedMedian(x$attribute, x$weight))
+  medianPerPUMA <- cbind(medianPerPUMA)
+  medianPerPUMA$geography <- rownames(medianPerPUMA)
+  
+  # plot it
+  load("/home/eli/Data/ACS/shapefiles/cb_2015_all.df") # loads allPUMAregions.df
+  allPUMAregions.df <- merge(allPUMAregions.df, medianPerPUMA, by.x="id", by.y="geography",all.x="TRUE")
+  allPUMAregions.df <- allPUMAregions.df[order(allPUMAregions.df$order), ]
+  plotMap(allPUMAregions.df, allPUMAregions.df$medianPerPUMA, plotTitle, plotName)
+}
