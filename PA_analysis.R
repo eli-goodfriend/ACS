@@ -10,6 +10,14 @@ library(DBI)
 load( '~/Data/ACS/pa_design.rda' )	# analyze the 2014 single year ACS
 pa.acs <- open( pa.acs.design , driver = MonetDBLite() )
 
+dbfolder <- "~/Data/ACS/MonetDB"
+db <- dbConnect( MonetDBLite::MonetDBLite() , dbfolder )
+padata <- dbGetQuery(db, "SELECT pincp, education, degree, industry FROM acs14")
+padata$education <- as.factor(padata$education)
+padata$degree <- as.factor(padata$degree)
+padata$industry <- as.factor(padata$industry)
+
+
 # relp is relationship (to owner of house?)
 # 1-17 is all possible answers
 # 16 and 17 are group quarters
@@ -42,7 +50,7 @@ svytotal(
 pa.acs.hasincome <- subset(pa.acs, pincp > -20000) # income is bottom coded, so this is all
 svymean(~pincp, pa.acs.hasincome)
 svyquantile( ~pincp , pa.acs.hasincome , c( .25 , .5 , .75 ) )
-svyhist(~pincp, pa.acs.hasincome)
+#svyhist(~pincp, pa.acs.hasincome) # why doesn't this work?
 
 # is it better to have just a diploma or just a GED?
 pa.acs.hasincome.hsonly <- subset(pa.acs.hasincome, schl == 16 | schl ==17)
@@ -51,7 +59,28 @@ svyby(~pincp, ~schl, pa.acs.hasincome.hsonly, svyquantile, c(0.25,0.5,0.75))
 svyranktest(pincp~schl, pa.acs.hasincome.hsonly) # diploma gives significantly more income
 
 # income by level of education
-svyby(~pincp, ~education, pa.acs.hasincome, svyquantile, c(0.25,0.5,0.75))
+educationQuantiles <- svyby(~pincp, ~education, pa.acs.hasincome, svyquantile, c(0.25,0.5,0.75))
+educationRange <- aggregate(pincp ~ education, data=padata, range)
+educationRange$min <- educationRange$pincp[,1]
+educationRange$max <- educationRange$pincp[,2]
+educationQuantiles$IQR <- educationQuantiles$V3 - educationQuantiles$V1
+educationN <- svyby(~I(sex<3), ~ education , pa.acs , svytotal )
+educationData <- merge(educationQuantiles, educationRange, by="education")
+educationData <- merge(educationData, educationN, by="education")
+rownames(educationData) <- educationData$education
+educationData <- educationData[c("No diploma or GED","High school","Some college","Associates","Batchelors","Masters","Doctoral","Professional"),]
+educationData$bottom <- educationData$min
+educationData$top <- educationData$IQR * 1.5 + educationData$V3
+educationN <- educationData$`I(sex < 3)TRUE`
+educationToPlot <- t(educationData[, c("bottom","V1","V2","V3","top")])
+png(file="PAincomeEducation.png")
+par(mar=c(10.1,4.1,1.3,1.1))
+bxp(list(stats=educationToPlot, n=educationN, names=rownames(educationData)),
+    outline=FALSE, varwidth=TRUE, las=3,
+    ylab="Total income $/year")
+dev.off()
+#source("~/Dropbox/Code/ACS/postprocess/boxplotFromQuantiles.R")
+#boxplotFromQuantiles(educationQuantiles)
 
 
 
@@ -59,7 +88,7 @@ svyby(~pincp, ~education, pa.acs.hasincome, svyquantile, c(0.25,0.5,0.75))
 close(pa.acs)
 
 
-
+dbDisconnect( db , shutdown = TRUE)
 
 
 
