@@ -50,7 +50,7 @@ svytotal(
 pa.acs.hasincome <- subset(pa.acs, pincp > -20000) # income is bottom coded, so this is all
 svymean(~pincp, pa.acs.hasincome)
 svyquantile( ~pincp , pa.acs.hasincome , c( .25 , .5 , .75 ) )
-#svyhist(~pincp, pa.acs.hasincome) # why doesn't this work?
+#svyhist(~pincp, pa.acs.hasincome) # TODO why doesn't this work? package broken?
 
 # is it better to have just a diploma or just a GED?
 pa.acs.hasincome.hsonly <- subset(pa.acs.hasincome, schl == 16 | schl ==17)
@@ -59,28 +59,14 @@ svyby(~pincp, ~schl, pa.acs.hasincome.hsonly, svyquantile, c(0.25,0.5,0.75))
 svyranktest(pincp~schl, pa.acs.hasincome.hsonly) # diploma gives significantly more income
 
 # income by level of education
-educationQuantiles <- svyby(~pincp, ~education, pa.acs.hasincome, svyquantile, c(0.25,0.5,0.75))
+educationQuantiles <- svyby(~pincp, ~education, pa.acs.hasincome, 
+                            svyquantile, c(0.25,0.5,0.75))
 educationRange <- aggregate(pincp ~ education, data=padata, range)
-educationRange$min <- educationRange$pincp[,1]
-educationRange$max <- educationRange$pincp[,2]
-educationQuantiles$IQR <- educationQuantiles$V3 - educationQuantiles$V1
-educationN <- svyby(~I(sex<3), ~ education , pa.acs , svytotal )
-educationData <- merge(educationQuantiles, educationRange, by="education")
-educationData <- merge(educationData, educationN, by="education")
-rownames(educationData) <- educationData$education
-educationData <- educationData[c("No diploma or GED","High school","Some college","Associates","Batchelors","Masters","Doctoral","Professional"),]
-educationData$bottom <- educationData$min
-educationData$top <- educationData$IQR * 1.5 + educationData$V3
-educationN <- educationData$`I(sex < 3)TRUE`
-educationToPlot <- t(educationData[, c("bottom","V1","V2","V3","top")])
-png(file="PAincomeEducation.png")
-par(mar=c(10.1,4.1,1.3,1.1))
-bxp(list(stats=educationToPlot, n=educationN, names=rownames(educationData)),
-    outline=FALSE, varwidth=TRUE, las=3,
-    ylab="Total income $/year")
-dev.off()
-#source("~/Dropbox/Code/ACS/postprocess/boxplotFromQuantiles.R")
-#boxplotFromQuantiles(educationQuantiles)
+educationOrder <- c("No diploma or GED","High school","Some college","Associates",
+                    "Batchelors","Masters","Doctoral","Professional")
+source("~/Dropbox/Code/ACS/postprocess/boxplotFromQuantiles.R")
+boxplotFromQuantiles(educationQuantiles, educationRange, educationOrder, 
+                     "education", "PAincomeEducation.png")
 
 
 
