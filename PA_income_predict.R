@@ -11,6 +11,33 @@ dbfolder <- "~/Data/ACS/MonetDB"
 db <- dbConnect( MonetDBLite::MonetDBLite() , dbfolder )
 tablename <- "acs14pa"
 
+# most of our data is in terms of factors, so let's turn total income
+# into a factor using binning. then we can use the data in the usual
+# all-discrete data algorithms
+# TODO should this be in the ACStoDB.R routines? yes, bc should only run once
+# TODO come on now, loop it
+addtablename <- "newcolumns"
+cnts <- dbGetQuery(db, paste("SELECT uniqueid, pincp, agep, jwmnp, wkhp FROM", tablename))
+cnts$pincp <- cut(cnts$pincp, 100) # this should be done more carefully
+cnts$agep <- cut(cnts$agep, 20)
+cnts$jwmnp <- cut(cnts$jwmnp, 10)
+cnts$wkhp <- cut(cnts$wkhp, 20)
+dbWriteTable(db, addtablename, cnts)
+
+dbSendQuery(db, paste("ALTER TABLE", tablename, "ADD COLUMN pincpf VARCHAR(255);"))
+dbSendQuery(db, paste("ALTER TABLE", tablename, "ADD COLUMN agepf VARCHAR(255);"))
+dbSendQuery(db, paste("ALTER TABLE", tablename, "ADD COLUMN jwmnpf VARCHAR(255);"))
+dbSendQuery(db, paste("ALTER TABLE", tablename, "ADD COLUMN wkhpf VARCHAR(255);"))
+dbSendQuery(db, paste("UPDATE", tablename, "SET pincpf=(SELECT", addtablename,".pincp FROM", 
+                      addtablename, "WHERE ", addtablename,".uniqueid =", tablename,".uniqueid)"))
+dbSendQuery(db, paste("UPDATE", tablename, "SET agepf=(SELECT", addtablename,".agep FROM", 
+                      addtablename, "WHERE ", addtablename,".uniqueid =", tablename,".uniqueid)"))
+dbSendQuery(db, paste("UPDATE", tablename, "SET jwmnpf=(SELECT", addtablename,".jwmnp FROM", 
+                      addtablename, "WHERE ", addtablename,".uniqueid =", tablename,".uniqueid)"))
+dbSendQuery(db, paste("UPDATE", tablename, "SET wkhpf=(SELECT", addtablename,".wkhp FROM", 
+                      addtablename, "WHERE ", addtablename,".uniqueid =", tablename,".uniqueid)"))
+dbRemoveTable(db, addtablename)
+
 # split the data into a training and a test set
 trainTablename <- "acs14patrain"
 testTablename <- "acs14patest"
@@ -52,11 +79,50 @@ plot(resid(lm_model) ~ fitted(lm_model)) # this is a bad fit! even of training d
 # slighly more complicated model: include age and travel time too
 lm_model <- lm(pincp ~ agep + jwmnp + wkhp, data=lm_data)
 plot(resid(lm_model) ~ fitted(lm_model)) # still really bad
+predicted <- predict(lm_model, test_data)
+plot(predicted, test_data$pincp) # yup, not even close
 
 
+# let's try logistic regression with the binned income data
+# the full case would be ordinal logistic regression, and is maybe not natural for this data set
+# since these methods are actually trying to work around data being binary or otherwise discrete
+# well, it's a learning experience anyway
+# first, a simpler case: can I predict whether someone is living below the poverty line?
+# povpip gives a numerical value of the income-to-poverty ratio as a percent, so
+# povpip = 100 means that the person's income is at the poverty line
+# we also want to look at age, gender, race, ...
+train_data <- dbGetQuery(db,paste(
+  "SELECT povpip, agep, sex, rac1p FROM",trainTablename))
+test_data <- dbGetQuery(db,paste(
+  "SELECT povpip, agep, sex, rac1p FROM",testTablename))
 
+library(Amelia)
+missmap(train_data) # lots of misses in jwmnp and wkhp, some in povpip
 
+train_data <- train_data[complete.cases(train_data), ]
+test_data <- test_data[complete.cases(test_data), ]
+train_data$povpipb <- ifelse(train_data$povpip > 100, 1, 0) # if above poverty line, success
+test_data$povpipb <- ifelse(test_data$povpip > 100, 1, 0)
 
+glm_mod <- glm(povpipb ~ agep + sex + rac1p, 
+               family=binomial(link="logit"), data=train_data)
+
+fitted_results <- predict(glm_mod, newdata=test_data, type="response")
+fitted_results <- ifelse(fitted_results > 0.5, 1, 0)
+missclassError <- mean(fitted_results != test_data$povpipb, na.rm = TRUE)
+print(paste("Accuracy", 1-missclassError)) # good!
+
+library(ROCR)
+p <- predict(glm_mod, newdata=test_data, type="response")
+pr <- prediction(p, test_data$povpipb)
+prf <- performance(pr, measure="tpr", x.measure="fpr")
+plot(prf)
+
+auc <- performance(pr, measure = "auc")
+auc <- auc@y.values[[1]]
+auc # not so good
+
+# TODO could apriori be useful? needs binary data, but we have that
 
 
 
