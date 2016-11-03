@@ -91,18 +91,19 @@ plot(predicted, test_data$pincp) # yup, not even close
 # povpip gives a numerical value of the income-to-poverty ratio as a percent, so
 # povpip = 100 means that the person's income is at the poverty line
 # we also want to look at age, gender, race, ...
-train_data <- dbGetQuery(db,paste(
-  "SELECT povpip, agep, sex, rac1p FROM",trainTablename))
-test_data <- dbGetQuery(db,paste(
-  "SELECT povpip, agep, sex, rac1p FROM",testTablename))
-
+# TODO would the biglm package be useful here?
+data <- dbGetQuery(db, paste("SELECT 
+                             serialno, povpip, agep, sex, rac1p FROM", tablename))
 library(Amelia)
-missmap(train_data) # lots of misses in jwmnp and wkhp, some in povpip
+missmap(data)
+data <- data[complete.cases(data), ] # TODO this hammer will be too big in future
+data$povpipb <- ifelse(data$povpip > 100, 1, 0) # if above poverty line, success!
+data$povpipb <- factor(data$povpipb)
+data$sex <- factor(data$sex)
+data$rac1p <- factor(data$rac1p)
 
-train_data <- train_data[complete.cases(train_data), ]
-test_data <- test_data[complete.cases(test_data), ]
-train_data$povpipb <- ifelse(train_data$povpip > 100, 1, 0) # if above poverty line, success
-test_data$povpipb <- ifelse(test_data$povpip > 100, 1, 0)
+train_data <- data[data$serialno <  cutoffID[1,1],]
+test_data  <- data[data$serialno >= cutoffID[1,1],]
 
 glm_mod <- glm(povpipb ~ agep + sex + rac1p, 
                family=binomial(link="logit"), data=train_data)
