@@ -16,6 +16,7 @@ tablename <- "acs14pa"
 # all-discrete data algorithms
 # TODO should this be in the ACStoDB.R routines? yes, bc should only run once
 # TODO come on now, loop it
+# TODO actually, is this necessary at all? can recalc in dataframe quickly for PA only
 addtablename <- "newcolumns"
 cnts <- dbGetQuery(db, paste("SELECT uniqueid, pincp, agep, jwmnp, wkhp FROM", tablename))
 cnts$pincp <- cut(cnts$pincp, 100) # this should be done more carefully
@@ -91,40 +92,46 @@ plot(predicted, test_data$pincp) # yup, not even close
 # povpip gives a numerical value of the income-to-poverty ratio as a percent, so
 # povpip = 100 means that the person's income is at the poverty line
 # we also want to look at age, gender, race, ...
-# TODO would the biglm package be useful here?
-data <- dbGetQuery(db, paste("SELECT 
-                             serialno, povpip, agep, sex, rac1p FROM", tablename))
-library(Amelia)
-missmap(data)
-data <- data[complete.cases(data), ] # TODO this hammer will be too big in future
-data$povpipb <- ifelse(data$povpip > 100, 1, 0) # if above poverty line, success!
-data$povpipb <- factor(data$povpipb)
-data$sex <- factor(data$sex)
-data$rac1p <- factor(data$rac1p)
+# TODO would the biglm package be useful here? EH, it cries when you don't bin the data right
+interestingData <- c("serialno","povpip","agep","sex","rac1p","hisp","waob","cit",
+                     "dis","qtrbir","mar","mil","schl","ddrs","dear","deye",
+                     "dout","dphy","drem","lanx","relp","sch","anc","anc1p","anc2p",
+                     "msp","nativity","pobp","rac2p","rac3p")
+factorData <- interestingData[interestingData != "agep" & interestingData != "povpip" &
+                                interestingData != "serialno"]
+# logregData <- interestingData[interestingData != "serialno" & 
+#                               interestingData != "povpip" &
+#                               interestingData != "agep" & # use the cut version instead
+#                               interestingData != "hisp"] # too fine grained
+# logregData <- c(logregData, "agepf") # this takes too long to run
+logregData <- c("agepf","sex","rac1p","waob","cit","dis","lanx")
 
-train_data <- data[data$serialno <  cutoffID[1,1],]
-test_data  <- data[data$serialno >= cutoffID[1,1],]
-
-glm_mod <- glm(povpipb ~ agep + sex + rac1p, 
-               family=binomial(link="logit"), data=train_data)
-
-fitted_results <- predict(glm_mod, newdata=test_data, type="response")
-fitted_results <- ifelse(fitted_results > 0.5, 1, 0)
-missclassError <- mean(fitted_results != test_data$povpipb, na.rm = TRUE)
-print(paste("Accuracy", 1-missclassError)) # good!
-
-library(ROCR)
-p <- predict(glm_mod, newdata=test_data, type="response")
-pr <- prediction(p, test_data$povpipb)
-prf <- performance(pr, measure="tpr", x.measure="fpr")
-plot(prf)
-
-auc <- performance(pr, measure = "auc")
-auc <- auc@y.values[[1]]
-auc # not so good
-
-# TODO could apriori be useful? needs binary data, but we have that
+source("~/Dropbox/Code/ACS/process/runLogisticRegression.R")
+model <- runLogisticRegression(db, interestingData, factorData, logregData, "withoutMar")
 
 
+# Before we did a logistic regression with just factors that a person has no control
+# over.
+# Now let's try with all factors that apply to all adults (e.g. not college degree)
+# that don't directly deal with the kind of work the person may do (e.g. industry)
+# or the kinds of assistance services the person may receive (e.g. medicare)
+# These are all NA for children, so we'll restrict data to people 18 or older
+# TODO so actually that ambitious plan is hard because it takes too long to run
+# need to make it faster
+interestingData <- c("serialno","povpip","agep","sex","rac1p","hisp","waob","cit",
+                     "dis","qtrbir","mar","mil","schl","ddrs","dear","deye",
+                     "dout","dphy","drem","lanx","relp","sch","anc","anc1p","anc2p",
+                     "msp","nativity","pobp","rac2p","rac3p")
+factorData <- interestingData[interestingData != "agep" & interestingData != "povpip" &
+                              interestingData != "serialno"]
+# logregData <- interestingData[interestingData != "serialno" & 
+#                               interestingData != "povpip" &
+#                               interestingData != "agep" & # use the cut version instead
+#                               interestingData != "hisp"] # too fine grained
+# logregData <- c(logregData, "agepf") # this takes too long to run
+logregData <- c("agepf","sex","rac1p","waob","cit","dis","lanx",
+                "mar") # these actually have significant effect
 
+source("~/Dropbox/Code/ACS/process/runLogisticRegression.R")
+model <- runLogisticRegression(db, interestingData, factorData, logregData, "withMar")
 
