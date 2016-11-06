@@ -96,19 +96,23 @@ plot(predicted, test_data$pincp) # yup, not even close
 interestingData <- c("serialno","povpip","agep","sex","rac1p","hisp","waob","cit",
                      "dis","qtrbir","mar","mil","schl","ddrs","dear","deye",
                      "dout","dphy","drem","lanx","relp","sch","anc","anc1p","anc2p",
-                     "msp","nativity","pobp","rac2p","rac3p")
+                     "msp","nativity","pobp","rac2p","rac3p","pincp",
+                     "racaian","racasn","racblk","racnh","racnum","racpi","racsor","racwht")
 factorData <- interestingData[interestingData != "agep" & interestingData != "povpip" &
-                                interestingData != "serialno"]
+                                interestingData != "serialno" & interestingData != "pincp"]
 # logregData <- interestingData[interestingData != "serialno" & 
 #                               interestingData != "povpip" &
 #                               interestingData != "agep" & # use the cut version instead
 #                               interestingData != "hisp"] # too fine grained
 # logregData <- c(logregData, "agepf") # this takes too long to run
-logregData <- c("agepf","sex","rac1p","waob","cit","dis","lanx")
+#logregData <- c("agepf","sex","rac1p","waob","cit","dis","lanx")
+logregData <- c("agepf","sex","racaian","racasn","racblk","racsor","racwht")
 
 source("~/Dropbox/Code/ACS/process/runLogisticRegression.R")
-model <- runLogisticRegression(db, interestingData, factorData, logregData, "withoutMar")
-
+povpipb_withoutMar <- runLogisticRegression(db, tablename, interestingData, factorData, logregData,
+                                            "withoutMar","povpipb")
+rich_withoutMar <- runLogisticRegression(db, tablename, interestingData, factorData, logregData,
+                               "withoutMar","rich")
 
 # Before we did a logistic regression with just factors that a person has no control
 # over.
@@ -118,20 +122,35 @@ model <- runLogisticRegression(db, interestingData, factorData, logregData, "wit
 # These are all NA for children, so we'll restrict data to people 18 or older
 # TODO so actually that ambitious plan is hard because it takes too long to run
 # need to make it faster
-interestingData <- c("serialno","povpip","agep","sex","rac1p","hisp","waob","cit",
-                     "dis","qtrbir","mar","mil","schl","ddrs","dear","deye",
-                     "dout","dphy","drem","lanx","relp","sch","anc","anc1p","anc2p",
-                     "msp","nativity","pobp","rac2p","rac3p")
-factorData <- interestingData[interestingData != "agep" & interestingData != "povpip" &
-                              interestingData != "serialno"]
 # logregData <- interestingData[interestingData != "serialno" & 
 #                               interestingData != "povpip" &
 #                               interestingData != "agep" & # use the cut version instead
 #                               interestingData != "hisp"] # too fine grained
-# logregData <- c(logregData, "agepf") # this takes too long to run
-logregData <- c("agepf","sex","rac1p","waob","cit","dis","lanx",
-                "mar") # these actually have significant effect
+# logregData <- c(logregData, "agepf") # TODO this takes too long to run, how to speed?
+#logregData <- c("agepf","sex","rac1p","waob","cit","dis","lanx",
+#                "mar") # these actually have significant effect
+logregData <- c("agepf","sex","racaian","racasn","racblk","racsor","racwht","mar")
 
-source("~/Dropbox/Code/ACS/process/runLogisticRegression.R")
-model <- runLogisticRegression(db, interestingData, factorData, logregData, "withMar")
+povpipb_withMar <- runLogisticRegression(db, tablename, interestingData, factorData, logregData,
+                               "withMar","povpipb")
+rich_withMar <- runLogisticRegression(db, tablename, interestingData, factorData, logregData,
+                               "withMar","rich")
+
+# plot all the prf lines together for comparison
+# TODO more compact way of doing this?
+png(file="performance_together.png")
+plot(povpipb_withoutMar$prf, lwd=3, lty=6)
+par(new=TRUE)
+plot(povpipb_withMar$prf, col="red", lwd=3, lty=6)
+par(new=TRUE)
+plot(rich_withoutMar$prf, lwd=3)
+par(new=TRUE)
+plot(rich_withMar$prf, col="red", lwd=3)
+legend("bottomright", c("Below poverty line, not including marriage",
+                        "Below poverty line, including marriage",
+                        "In top 1%, not including marriage",
+                        "In top 1%, including marriage"),
+       col=c("black","red","black","red"), lwd=3, lty=c(6,6,1,1))
+dev.off()
+
 
