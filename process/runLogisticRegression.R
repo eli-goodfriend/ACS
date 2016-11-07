@@ -6,6 +6,7 @@ runLogisticRegression <- function(db, tablename, interestingData, factorData, lo
                                "FROM", tablename))
   dataset <- dataset[dataset$agep > 17,]
   dataset <- dataset[complete.cases(dataset), ] # TODO this hammer will be too big in future
+  
   poor <- quantile(dataset$pincp, probs=0.10)
   dataset$povpipb <- ifelse(dataset$pincp < poor, 1, 0) # in group if in bottom 10% of total income
   dataset$povpipb <- factor(dataset$povpipb)
@@ -13,6 +14,9 @@ runLogisticRegression <- function(db, tablename, interestingData, factorData, lo
   rich <- quantile(dataset$pincp, probs=0.90)
   dataset$rich <- ifelse(dataset$pincp > rich, 1, 0) # in group if in top 10% of total income
   dataset$rich <- factor(dataset$rich)
+  
+  successCmd <- paste("dataset$success <- dataset$",variable)
+  eval(parse(text=successCmd))
   dataset[factorData] <- lapply(dataset[factorData], factor)
   
   library(Amelia)
@@ -20,6 +24,8 @@ runLogisticRegression <- function(db, tablename, interestingData, factorData, lo
   missmap(dataset)
   dev.off()
   
+  # divide into test and training datasets
+  # Is serialno a good variable to divide on? might be related to income through geography
   sql <- paste("SELECT MIN(serialno) FROM", tablename)
   minSerialNo <- dbGetQuery(db, sql)
   sql <- paste("SELECT MAX(serialno) FROM", tablename)
@@ -28,9 +34,21 @@ runLogisticRegression <- function(db, tablename, interestingData, factorData, lo
   train_data <- dataset[dataset$serialno <  cutoffID[1,1],]
   test_data  <- dataset[dataset$serialno >= cutoffID[1,1],]
   
+  # correction for class size difference: use weighted maximum likelihood
+  # (King 2001) Logistic Regression in Rare Events Data
+  # do this in the training set only
+  # subsample all of the data that is a "success", since that's small
+  # and 10% of the data that's a "failure"
+  temp_data <- train_data[train_data$success == 0,]
+  cutoffNum <- round(length(train_data$success)/10)
+  temp_data <- temp_data[1:cutoffNum,] # this could be cleverer
+  train_data <- rbind(temp_data, train_data[train_data$success == 1,])
+  train_data$weights <- as.integer(train_data$success)*9 + 1 # 10 for success, 1 otherwise
+  
   #library(biglm) # this is fragile because if a chunk doesn't have all the factors, it will cry
-  glm_cmd <- paste("glm_mod <- glm(",variable,"~", paste(logregData, collapse="+"),
-                   ", family=binomial(link='logit'), data=train_data)")
+  glm_cmd <- paste("glm_mod <- glm(success~", paste(logregData, collapse="+"),
+                   ", family=binomial(link='logit'), data=train_data,
+                   weights = weights)")
   eval(parse(text=glm_cmd))
   
   sink(file=filename)
@@ -71,9 +89,7 @@ runLogisticRegression <- function(db, tablename, interestingData, factorData, lo
   
   fitted_results <- predict(glm_mod, newdata=test_data, type="response")
   fitted_results <- ifelse(fitted_results > 0.5, 1, 0)
-  missclassCmd <- paste("missclassError <- mean(fitted_results != test_data$",
-                        variable,", na.rm = TRUE)")
-  eval(parse(text=missclassCmd))
+  missclassError <- mean(fitted_results != test_data$success, na.rm = TRUE)
   sink(file=filename, append=TRUE)
   print(paste("Accuracy", 1-missclassError)) # good! (want close to 1)
   print(summary(factor(fitted_results)))
@@ -81,8 +97,7 @@ runLogisticRegression <- function(db, tablename, interestingData, factorData, lo
   
   library(ROCR)
   p <- predict(glm_mod, newdata=test_data, type="response")
-  predictionCmd <- paste("pr <- prediction(p, test_data$",variable,")")
-  eval(parse(text=predictionCmd))
+  pr <- prediction(p, test_data$success)
   prf <- performance(pr, measure="tpr", x.measure="fpr")
   png(file=paste("performance_", runtype, "_", variable, ".png"))
   plot(prf)
