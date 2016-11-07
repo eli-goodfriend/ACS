@@ -141,16 +141,9 @@ rich_withMar <- runLogisticRegression(db, tablename, interestingData, factorData
 png(file="performance_together.png")
 plot(povpipb_withoutMar$prf, lwd=3, lty=6)
 par(new=TRUE)
-plot(povpipb_withMar$prf, col="red", lwd=3, lty=6)
-par(new=TRUE)
 plot(rich_withoutMar$prf, lwd=3)
-par(new=TRUE)
-plot(rich_withMar$prf, col="red", lwd=3)
-legend("bottomright", c("Below poverty line, not including marriage",
-                        "Below poverty line, including marriage",
-                        "In top 1%, not including marriage",
-                        "In top 1%, including marriage"),
-       col=c("black","red","black","red"), lwd=3, lty=c(6,6,1,1))
+legend("bottomright", c("In bottom 10%","In top 10%"),
+       lwd=3, lty=c(6,1), cex=1.5)
 dev.off()
 
 

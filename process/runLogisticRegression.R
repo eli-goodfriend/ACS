@@ -53,10 +53,13 @@ runLogisticRegression <- function(db, tablename, interestingData, factorData, lo
   oddsRatio$varNames <- gsub('racblk1','African American',oddsRatio$varNames)
   oddsRatio$varNames <- gsub('racsor1','Some other race',oddsRatio$varNames)
   oddsRatio$varNames <- gsub('racwht1','White',oddsRatio$varNames)
+  oddsRatio$varNames <- factor(oddsRatio$varNames, levels = oddsRatio$varNames)
+  ggfile=paste("OR_", runtype, "_", variable, ".png")
   ggplot(oddsRatio, aes(x = varNames, y = OR, ymin = `2.5 %`, ymax = `97.5 %`)) + 
     geom_pointrange() + coord_flip() + scale_y_continuous(trans='log10') +
     ylab("Odds ratio & 95% CI") + geom_hline(aes(yintercept = 1)) + 
     xlab("")
+  ggsave(ggfile)
   
   sink(file=filename, append=TRUE)
   print(anova(glm_mod, test="Chisq"))
