@@ -106,9 +106,9 @@ factorData <- interestingData[interestingData != "agep" & interestingData != "po
 #                               interestingData != "hisp"] # too fine grained
 # logregData <- c(logregData, "agepf") # this takes too long to run
 #logregData <- c("agepf","sex","rac1p","waob","cit","dis","lanx")
-logregData <- c("agepf","sex","racaian","racasn","racblk","racsor","racwht")
-
 source("~/Dropbox/Code/ACS/process/runLogisticRegression.R")
+
+logregData <- c("agepf","sex","racaian","racasn","racblk","racsor","racwht")
 povpipb_withoutMar <- runLogisticRegression(db, tablename, interestingData, factorData, logregData,
                                             "withoutMar","povpipb")
 rich_withoutMar <- runLogisticRegression(db, tablename, interestingData, factorData, logregData,

@@ -6,11 +6,12 @@ runLogisticRegression <- function(db, tablename, interestingData, factorData, lo
                                "FROM", tablename))
   dataset <- dataset[dataset$agep > 17,]
   dataset <- dataset[complete.cases(dataset), ] # TODO this hammer will be too big in future
-  dataset$povpipb <- ifelse(dataset$povpip < 100, 1, 0) # in group if below poverty line
+  poor <- quantile(dataset$pincp, probs=0.10)
+  dataset$povpipb <- ifelse(dataset$pincp < poor, 1, 0) # in group if in bottom 10% of total income
   dataset$povpipb <- factor(dataset$povpipb)
   dataset$agepf <- cut(dataset$agep, c(18,25,35,65,100))
-  rich <- quantile(dataset$pincp, probs=0.99) # the one percent! statistically!
-  dataset$rich <- ifelse(dataset$pincp > rich, 1, 0) # in group if in top 1% of total income
+  rich <- quantile(dataset$pincp, probs=0.90)
+  dataset$rich <- ifelse(dataset$pincp > rich, 1, 0) # in group if in top 10% of total income
   dataset$rich <- factor(dataset$rich)
   dataset[factorData] <- lapply(dataset[factorData], factor)
   
@@ -34,7 +35,28 @@ runLogisticRegression <- function(db, tablename, interestingData, factorData, lo
   
   sink(file=filename)
   print(summary(glm_mod))
+  #print(confint(glm_mod)) # less useful in this form, better as odds ratio
+  oddsRatio <- exp(cbind(OR = coef(glm_mod), confint(glm_mod)))
+  print(oddsRatio)
   sink()
+  
+  library(ggplot2)
+  oddsRatio <- as.data.frame(oddsRatio)
+  oddsRatio <- oddsRatio[-c(1),] # don't care about intercept, which is always first
+  oddsRatio$varNames <- rownames(oddsRatio)
+  oddsRatio$varNames <- gsub('sex2','Female',oddsRatio$varNames) #TODO this is annoying
+  oddsRatio$varNames <- gsub('agepf\\(25,35]','Age 26-35',oddsRatio$varNames)
+  oddsRatio$varNames <- gsub('agepf\\(35,65]','Age 36-65',oddsRatio$varNames)
+  oddsRatio$varNames <- gsub('agepf\\(65,100]','Age 66 or older',oddsRatio$varNames)
+  oddsRatio$varNames <- gsub('racaian1','Native American',oddsRatio$varNames)
+  oddsRatio$varNames <- gsub('racasn1','Asian American',oddsRatio$varNames)
+  oddsRatio$varNames <- gsub('racblk1','African American',oddsRatio$varNames)
+  oddsRatio$varNames <- gsub('racsor1','Some other race',oddsRatio$varNames)
+  oddsRatio$varNames <- gsub('racwht1','White',oddsRatio$varNames)
+  ggplot(oddsRatio, aes(x = varNames, y = OR, ymin = `2.5 %`, ymax = `97.5 %`)) + 
+    geom_pointrange() + coord_flip() + scale_y_continuous(trans='log10') +
+    ylab("Odds ratio & 95% CI") + geom_hline(aes(yintercept = 1)) + 
+    xlab("")
   
   sink(file=filename, append=TRUE)
   print(anova(glm_mod, test="Chisq"))
@@ -51,6 +73,7 @@ runLogisticRegression <- function(db, tablename, interestingData, factorData, lo
   eval(parse(text=missclassCmd))
   sink(file=filename, append=TRUE)
   print(paste("Accuracy", 1-missclassError)) # good! (want close to 1)
+  print(summary(factor(fitted_results)))
   sink()
   
   library(ROCR)
