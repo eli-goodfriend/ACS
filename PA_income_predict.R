@@ -25,7 +25,8 @@ interestingData <- c("serialno","povpip","agep","sex","rac1p","hisp","waob","cit
                      "dis","qtrbir","mar","mil","schl","ddrs","dear","deye",
                      "dout","dphy","drem","lanx","relp","sch","anc","anc1p","anc2p",
                      "msp","nativity","pobp","rac2p","rac3p","pincp",
-                     "racaian","racasn","racblk","racnh","racnum","racpi","racsor","racwht")
+                     "racaian","racasn","racblk","racnh","racnum","racpi",
+                     "racsor","racwht","education")
 factorData <- interestingData[interestingData != "agep" & interestingData != "povpip" &
                                 interestingData != "serialno" & interestingData != "pincp"]
 # logregData <- interestingData[interestingData != "serialno" & 
@@ -33,10 +34,10 @@ factorData <- interestingData[interestingData != "agep" & interestingData != "po
 #                               interestingData != "agep" & # use the cut version instead
 #                               interestingData != "hisp"] # too fine grained
 # logregData <- c(logregData, "agepf") # this takes too long to run
-#logregData <- c("agepf","sex","rac1p","waob","cit","dis","lanx") # rank deficient, why?
 source("~/Dropbox/Code/ACS/process/runLogisticRegression.R")
 
-logregData <- c("agepf","sex","racaian","racasn","racblk","racsor","racwht")
+logregData <- c("agepf","sex","racaian","racasn","racblk","racsor","racwht",
+                "waob","dis")
 povpipb_withoutMar <- runLogisticRegression(db, tablename, interestingData, factorData, logregData,
                                             "withoutMar","povpipb")
 rich_withoutMar <- runLogisticRegression(db, tablename, interestingData, factorData, logregData,
@@ -50,19 +51,13 @@ rich_withoutMar <- runLogisticRegression(db, tablename, interestingData, factorD
 # These are all NA for children, so we'll restrict data to people 18 or older
 # TODO so actually that ambitious plan is hard because it takes too long to run
 # need to make it faster
-# logregData <- interestingData[interestingData != "serialno" & 
-#                               interestingData != "povpip" &
-#                               interestingData != "agep" & # use the cut version instead
-#                               interestingData != "hisp"] # too fine grained
-# logregData <- c(logregData, "agepf") # TODO this takes too long to run, how to speed?
-#logregData <- c("agepf","sex","rac1p","waob","cit","dis","lanx",
-#                "mar") # these actually have significant effect
-logregData <- c("agepf","sex","racaian","racasn","racblk","racsor","racwht","mar")
+logregData <- c("agepf","sex","racaian","racasn","racblk","racsor","racwht",
+                "mar","lanx","waob","dis","education")
 
-povpipb_withMar <- runLogisticRegression(db, tablename, interestingData, factorData, logregData,
-                               "withMar","povpipb")
-rich_withMar <- runLogisticRegression(db, tablename, interestingData, factorData, logregData,
-                               "withMar","rich")
+pov_all <- runLogisticRegression(db, tablename, interestingData, factorData, logregData,
+                               "all","povpipb")
+rich_all <- runLogisticRegression(db, tablename, interestingData, factorData, logregData,
+                               "all","rich")
 
 # plot all the prf lines together for comparison
 # TODO more compact way of doing this?
@@ -74,4 +69,15 @@ legend("bottomright", c("In bottom 10%","In top 10%"),
        lwd=3, lty=c(6,1), cex=1.5)
 dev.off()
 
+# can we do better with support vector machines?
+# TODO I have no idea how these work
+# TODO in what contexts is one method likely to work better than another?
+#      or perhaps SVM are just slower and better than logreg?
+library(e1071)
+source("~/Dropbox/Code/ACS/process/runSVM.R")
+
+svmData <- c("agepf","sex","racaian","racasn","racblk","racsor","racwht",
+                "mar","mil","lanx")
+povpipb_withoutMar <- runSVM(db, tablename, interestingData, factorData, svmData,
+                             "withoutMar","povpipb") # takes so long.
 

@@ -10,7 +10,7 @@ runLogisticRegression <- function(db, tablename, interestingData, factorData, lo
   poor <- quantile(dataset$pincp, probs=0.10)
   dataset$povpipb <- ifelse(dataset$pincp < poor, 1, 0) # in group if in bottom 10% of total income
   dataset$povpipb <- factor(dataset$povpipb)
-  dataset$agepf <- cut(dataset$agep, c(18,25,35,65,100))
+  dataset$agepf <- cut(dataset$agep, c(17,25,35,65,100))
   rich <- quantile(dataset$pincp, probs=0.90)
   dataset$rich <- ifelse(dataset$pincp > rich, 1, 0) # in group if in top 10% of total income
   dataset$rich <- factor(dataset$rich)
@@ -31,17 +31,21 @@ runLogisticRegression <- function(db, tablename, interestingData, factorData, lo
   sql <- paste("SELECT MAX(serialno) FROM", tablename)
   maxSerialNo <- dbGetQuery(db, sql)
   cutoffID <- minSerialNo + (maxSerialNo - minSerialNo)*0.8
-  train_data <- dataset[dataset$serialno <  cutoffID[1,1],]
-  test_data  <- dataset[dataset$serialno >= cutoffID[1,1],]
   
-  # correction for class size difference: use weighted maximum likelihood
+  index     <- 1:nrow(dataset)
+  testindex <- sample(index, trunc(length(index)/5))
+  train_data <- dataset[-testindex,]
+  test_data  <- dataset[testindex,]
+  
+  # correction for class imbalance: use weighted maximum likelihood
   # (King 2001) Logistic Regression in Rare Events Data
   # do this in the training set only
   # subsample all of the data that is a "success", since that's small
   # and 10% of the data that's a "failure"
   temp_data <- train_data[train_data$success == 0,]
-  cutoffNum <- round(length(train_data$success)/10)
-  temp_data <- temp_data[1:cutoffNum,] # this could be cleverer
+  successindex <- 1:nrow(temp_data)
+  undersampleIndex <- sample(successindex, trunc(length(successindex)/10))
+  temp_data <- temp_data[undersampleIndex,]
   train_data <- rbind(temp_data, train_data[train_data$success == 1,])
   train_data$weights <- as.integer(train_data$success)*9 + 1 # 10 for success, 1 otherwise
   
@@ -84,9 +88,10 @@ runLogisticRegression <- function(db, tablename, interestingData, factorData, lo
   sink()
   library("pscl")
   sink(file=filename, append=TRUE)
-  print(pR2(glm_mod))
+  #print(pR2(glm_mod)) # why is this broken now? don't use it but still
   sink()
   
+  #TODO should newdata only have vars used in fitting? or smart enough?
   fitted_results <- predict(glm_mod, newdata=test_data, type="response")
   fitted_results <- ifelse(fitted_results > 0.5, 1, 0)
   missclassError <- mean(fitted_results != test_data$success, na.rm = TRUE)
