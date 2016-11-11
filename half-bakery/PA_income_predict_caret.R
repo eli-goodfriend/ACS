@@ -3,8 +3,8 @@ library(survey)
 library(MonetDBLite)
 library(DBI)
 library(caret)
-source("~/Dropbox/Code/ACS/preprocess/cleanData.R")
-source("~/Dropbox/Code/ACS/postprocess/plotOddsRatios.R")
+source("~/Dropbox/Code/ACS/preprocess/cleanData_income.R")
+source("~/Dropbox/Code/ACS/postprocess/assessFit_income.R")
 
 # open the database containing the datasets and specify the PA only table
 dbfolder <- "~/Data/ACS/MonetDB"
@@ -40,7 +40,7 @@ inTrain <- createDataPartition(y = dataset$success, p = .75, list = FALSE)
 training <- dataset[inTrain,]
 testing <- dataset[-inTrain,]
 
-# train it, using caret
+# --- logistic regression!
 tc <- trainControl("cv", 10, savePredictions = T,
                    #summaryFunction = twoClassSummary, # these cause name problems
                    #classProbs = TRUE,
@@ -54,18 +54,31 @@ logregFit <- train(success ~
                 #metric = "ROC", # need the broken summaryFunction and classProbs
                 trControl = tc)
 
-# test it, also using caret
-logregClasses <- predict(logregFit, newdata = testing)
-confusionMatrix(data = logregClasses, testing$success)
-library(ROCR)
-p <- predict(logregFit, newdata = testing, type="prob")[,2] # why [,2]? dunno
-pr <- prediction(p, testing$success)
-prf <- performance(pr, measure="tpr", x.measure="fpr")
-plot(prf)
-auc <- performance(pr, measure = "auc")
-auc <- auc@y.values[[1]]
-auc
-
-# compute and plot the odds ratios
+getConfusionMatrix(logregFit, testing)
+getAUC(logregFit, testing)
 plotOddsRatios(logregFit)
+
+# # --- support vector machine!
+# # takes much longer than logreg and is no more accurate
+# tc <- trainControl("cv", 10, savePredictions = T,
+#                    #summaryFunction = twoClassSummary, # these cause name problems
+#                    #classProbs = TRUE,
+#                    sampling = "down")
+# svmFit <- train(success ~ 
+#                      sex + waob + dis + mar + agepf + education + cow +
+#                      racaian + racasn + racblk + racwht + raclat +
+#                      hhl + hht + mv + partner + ssmc, 
+#                    data = training, 
+#                    method = "svmRadial", 
+#                    #metric = "ROC", # need the broken summaryFunction and classProbs
+#                    trControl = tc)
+# 
+# getConfusionMatrix(svmFit, testing)
+# getAUC(svmFit, testing)
+# plotOddsRatios(svmFit)
+
+
+
+
+
 
