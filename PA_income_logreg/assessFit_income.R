@@ -1,3 +1,19 @@
+getConfusionMatrix <- function(fit, testdata){
+  fitClasses <- predict(fit, newdata = testdata)
+  confusionMatrix(data = fitClasses, testdata$success)
+}
+
+getAUC <- function(fit, testdata){
+  library(ROCR)
+  p <- predict(fit, newdata = testdata, type="prob")[,2] # why [,2]? dunno
+  pr <- prediction(p, testdata$success)
+  prf <- performance(pr, measure="tpr", x.measure="fpr")
+  plot(prf)
+  auc <- performance(pr, measure = "auc")
+  auc <- auc@y.values[[1]]
+  auc
+}
+
 plotOddsRatios <- function(fit){
   oddsRatio <- exp(cbind(OR = coef(fit$finalModel), 
                          confint(fit$finalModel)))
