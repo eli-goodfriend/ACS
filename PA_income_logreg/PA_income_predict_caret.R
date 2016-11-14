@@ -3,8 +3,8 @@ library(survey)
 library(MonetDBLite)
 library(DBI)
 library(caret)
-source("~/Dropbox/Code/ACS/preprocess/cleanData_income.R")
-source("~/Dropbox/Code/ACS/postprocess/assessFit_income.R")
+source("~/Dropbox/Code/ACS/PA_income_logreg/cleanData_income.R")
+source("~/Dropbox/Code/ACS/PA_income_logreg/assessFit_income.R")
 
 # open the database containing the datasets and specify the PA only table
 dbfolder <- "~/Data/ACS/MonetDB"
@@ -27,11 +27,10 @@ factorData <- interestingData[interestingData != "agep" &
                               interestingData != "pincp"]
 dataset[factorData] <- lapply(dataset[factorData], factor)
 dataset <- cleanData(dataset)
+dataset <- dataset[complete.cases(dataset), ] # TODO check how much this removes
 
 # define success (and other canonically difficult tasks)
-# let's say success is having a poverty ratio of at least 2
-dataset$success <- factor(ifelse(dataset$povpip >200, 1, 0))
-dataset <- dataset[complete.cases(dataset), ] # TODO check how much this removes
+dataset$success <- factor(ifelse(dataset$povpip < 100, "yes", "no"))
 
 # divide into a test and training set
 # the authors of this class are real people, since they use camelCase instead of
@@ -42,21 +41,24 @@ testing <- dataset[-inTrain,]
 
 # --- logistic regression!
 tc <- trainControl("cv", 10, savePredictions = T,
-                   #summaryFunction = twoClassSummary, # these cause name problems
-                   #classProbs = TRUE,
+                   summaryFunction = twoClassSummary, 
+                   classProbs = TRUE,
                    sampling = "down")
 logregFit <- train(success ~ 
-                  sex + waob + dis + mar + agepf + education + cow +
-                  racaian + racasn + racblk + racwht + raclat +
-                  hhl + hht + mv + partner + ssmc, 
+                     mv + hht + cow + education + waob +
+                     dis + agepf +
+                     racaian + raclat + racwht + racasn + racblk +
+                     sex, # in inverse order of plotting
                 data = training, 
                 method = "glm", family = "binomial", 
-                #metric = "ROC", # need the broken summaryFunction and classProbs
+                metric = "ROC",
                 trControl = tc)
 
+plotVarImp(logregFit)
 getConfusionMatrix(logregFit, testing)
 getAUC(logregFit, testing)
 plotOddsRatios(logregFit)
+
 
 # # --- support vector machine!
 # # takes much longer than logreg and is no more accurate
