@@ -250,6 +250,9 @@ dbSendQuery( db , sql )
 # add a unique ID for each entry by combining serialno and sporder
 dbSendQuery(db, "ALTER TABLE acs14 ADD COLUMN uniqueid INT;")
 dbSendQuery(db, "UPDATE acs14 SET uniqueid = serialno + 100000000*sporder;")
+# make unique geography markers by combining state and puma
+dbSendQuery(db, "ALTER TABLE acs14 ADD COLUMN geography INT;")
+dbSendQuery(db, "UPDATE acs14 SET geography = puma + 100000*st;")
 
 # do some data binning, for ease of future analyses
 # TODO documentation suggests I can add these to the svrepdesign object later
