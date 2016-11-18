@@ -1,5 +1,5 @@
 # plotting function
-plotMap <- function(dataframe, column, titleText, fileName){    
+plotMap <- function(dataframe, column){    
   library("ggplot2")
   library("mapproj")
   library("ggmap")
@@ -13,7 +13,7 @@ plotMap <- function(dataframe, column, titleText, fileName){
     theme_nothing(legend=TRUE) +
     theme(legend.text=element_text(size=20),
           plot.title=element_text(size=24)) +
-    labs(title=titleText) +
+    labs(title="Percent of people like you") +
     xlim(-130, -65) +
     ylim(25,50) +
     scale_fill_gradient("",low="white", high="blue", limits=limits)
@@ -37,11 +37,11 @@ plotMap <- function(dataframe, column, titleText, fileName){
                                       hawaiiPlot + theme(legend.position="none"),
                                       nrow=2),
                           continentalPlot, nrow=1, widths=c(1,5))
-  ggsave(usaPlot, file=fileName, type="cairo-png", width=20, height=10)
+  print(usaPlot)
 }
 
-# primary function
-plotByPUMA <- function(dataset, plotTitle, plotName){
+# data crunching
+plotByPUMA <- function(dataset){
   dataset$geography <- sprintf("%07d",as.numeric(dataset$geography))
 
   # what is the percentage overall?
@@ -73,10 +73,39 @@ plotByPUMA <- function(dataset, plotTitle, plotName){
   allPUMAregions.df <- merge(allPUMAregions.df, totalPeoplePerPUMA, 
                              by.x="id", by.y="geography",all.x="TRUE")
   allPUMAregions.df <- allPUMAregions.df[order(allPUMAregions.df$order), ]
-  plotMap(allPUMAregions.df, allPUMAregions.df$percentWithAttribute, 
-          plotTitle, plotName)
+  plotMap(allPUMAregions.df, allPUMAregions.df$percentWithAttribute)
 }
 
+# data corralling
+likeMe <- function(criteriaIn){
+  library(MonetDBLite)
+  library(DBI)
+
+  # open the database containing the datasets
+  dbfolder <- "~/Data/ACS/MonetDB"
+  db <- dbConnect( MonetDBLite::MonetDBLite() , dbfolder )
+  tablename <- "acs14lite"
+  
+  # determine the data we want, pull it, and clean it up
+  criteria <- strsplit(criteriaIn, ".", fixed = TRUE)
+  criteria <- matrix(unlist(criteria), ncol = 3, byrow = TRUE)
+  newVariables <- criteria[,1]
+  variables <- c("pwgtp", "geography", newVariables)
+  dataset <- dbGetQuery(db, paste("SELECT", toString(variables),
+                                  "FROM", tablename))
+  
+  # figure out who is like me
+  criterion <- gsub(".", "", criteriaIn, fixed = TRUE)
+  criterion <- paste("dataset$", criterion, sep="")
+  criterion <- paste(criterion, collapse = "&")
+  cmd <- paste0("dataset$likeme <- ifelse(",criterion,", 1, 0)")
+  eval(parse(text=cmd))
+  dataset$likeme[is.na(dataset$likeme)] <- 0
+  dataset$likeme <- factor(dataset$likeme)
+  
+  # make the plot
+  plotByPUMA(dataset)
+}
 
 
 
