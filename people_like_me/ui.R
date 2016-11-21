@@ -26,6 +26,8 @@ shinyUI(fluidPage(
       )
     ),
     
+    # might want conditional panels to make new choices available?
+    
     # Show a plot of the generated distribution
     mainPanel(
       plotOutput("distPlot")

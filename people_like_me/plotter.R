@@ -1,5 +1,13 @@
+library(MonetDBLite)
+library(DBI)
+
+# open the database containing the datasets
+dbfolder <- "~/Data/ACS/MonetDB"
+db <- dbConnect( MonetDBLite::MonetDBLite() , dbfolder )
+tablename <- "acs14lite"
+
 # plotting function
-plotMap <- function(dataframe, column){    
+plotMap <- function(dataframe, column, titletext){    
   library("ggplot2")
   library("mapproj")
   library("ggmap")
@@ -13,7 +21,7 @@ plotMap <- function(dataframe, column){
     theme_nothing(legend=TRUE) +
     theme(legend.text=element_text(size=20),
           plot.title=element_text(size=24)) +
-    labs(title="Percent of people like you") +
+    labs(title=titletext) +
     xlim(-130, -65) +
     ylim(25,50) +
     scale_fill_gradient("",low="white", high="blue", limits=limits)
@@ -48,7 +56,7 @@ plotByPUMA <- function(dataset){
   totalPeople <- sum(dataset$pwgtp)
   totalWithDesiredAttribute <- sum(dataset$pwgtp[which(dataset$likeme == 1)])
   nationalPercentage <- totalWithDesiredAttribute / totalPeople *100
-  nationalPercentage
+  titletext <- paste0("National percent: ", round(nationalPercentage), "%")
   
   # what is the percentage in each PUMA region?
   totalPeoplePerPUMA <- aggregate(pwgtp~geography, dataset, sum)
@@ -73,18 +81,12 @@ plotByPUMA <- function(dataset){
   allPUMAregions.df <- merge(allPUMAregions.df, totalPeoplePerPUMA, 
                              by.x="id", by.y="geography",all.x="TRUE")
   allPUMAregions.df <- allPUMAregions.df[order(allPUMAregions.df$order), ]
-  plotMap(allPUMAregions.df, allPUMAregions.df$percentWithAttribute)
+  plotMap(allPUMAregions.df, allPUMAregions.df$percentWithAttribute, titletext)
 }
 
 # data corralling
 likeMe <- function(criteriaIn){
-  library(MonetDBLite)
-  library(DBI)
 
-  # open the database containing the datasets
-  dbfolder <- "~/Data/ACS/MonetDB"
-  db <- dbConnect( MonetDBLite::MonetDBLite() , dbfolder )
-  tablename <- "acs14lite"
   
   # determine the data we want, pull it, and clean it up
   criteria <- strsplit(criteriaIn, ".", fixed = TRUE)
