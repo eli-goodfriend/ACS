@@ -1,111 +1,3 @@
-2014 ACS PUMS DATA DICTIONARY
-October 27, 2015
-
-HOUSING RECORD
-
-SERIALNO 7
-Housing unit/GQ person serial number
-0000001..9999999 .Unique identifier
-
-DIVISION 1
-Division code
-0 .Puerto Rico
-1 .New England (Northeast region)
-2 .Middle Atlantic (Northeast region)
-3 .East North Central (Midwest region)
-4 .West North Central (Midwest region)
-5 .South Atlantic (South region)
-6 .East South Central (South region)
-7 .West South Central (South Region)
-8 .Mountain (West region)
-9 .Pacific (West region)
-
-PUMA 5
-Public use microdata area code (PUMA) based on 2010 Census definition
-00100..70301 .Public use microdata area codes
-
-Note: Public use microdata areas (PUMAs) designate areas of 100,000 or more population.  Use with ST for unique code.
-
-REGION 1
-Region code
-1 .Northeast
-2 .Midwest
-3 .South
-4 .West
-9 .Puerto Rico
- 
-ST 2
-State Code
-01 .Alabama/AL
-02 .Alaska/AK
-04 .Arizona/AR
-05 .Arkansas/AR
-06 .California/CA
-08 .Colorado/CO
-09 .Connecticut/CT
-10 .Delaware/DE
-11 .District of Columbia/DC
-12 .Florida/FL
-13 .Georgia/GA
-15 .Hawaii/HI
-16 .Idaho/ID
-17 .Illinois/IL
-18 .Indiana/IN
-19 .Iowa/IA
-20 .Kansas/KS
-21 .Kentucky/KY
-22 .Louisiana/LA
-23 .Maine/ME
-24 .Maryland/MD
-25 .Massachusetts/MA
-26 .Michigan/MI
-27 .Minnesota/MN
-28 .Mississippi/MS
-29 .Missouri/MO
-30 .Montana/MT
-31 .Nebraska/NE
-32 .Nevada/NV
-33 .New Hampshire/NH
-34 .New Jersey/NJ
-35 .New Mexico/NM
-36 .New York/NY
-37 .North Carolina/NC
-38 .North Dakota/ND
-39 .Ohio/OH
-40 .Oklahoma/OK
-41 .Oregon/OR
-42 .Pennsylvania/PA
-44 .Rhode Island/RI
-45 .South Carolina/SC
-46 .South Dakota/SD
-47 .Tennessee/TN
-48 .Texas/TX
-49 .Utah/UT
-50 .Vermont/VT
-51 .Virginia/VA
-53 .Washington/WA
-54 .West Virginia/WV
-55 .Wisconsin/WI
-56 .Wyoming/WY
-72 .Puerto Rico/PR
-
-ADJHSG 7
-Adjustment factor for housing dollar amounts (6 implied decimal places)
-1000000 .2014 factor (1.000000)
-
-Note: The value of ADJHSG inflation-adjusts reported housing costs to 2014 dollars and applies to variables CONP, ELEP, FULP, GASP, GRNTP, INSP, MHP, MRGP, SMOCP, RNTP, SMP, and WATP in the housing record. ADJHSG does not apply to AGS and TAXP because they are categorical variables that should not be inflation-adjusted. ADJHSG does not apply to VALP. 
-
-ADJINC 7
-Adjustment factor for income and earnings dollar amounts(6 implied decimal places)
-1008425 .2014 factor (1.008425)
-
-Note: The value of ADJINC inflation-adjusts reported income to 2014 dollars.  ADJINC applies to variables FINCP and HINCP in the housing record, and variables INTP, OIP, PAP, PERNP, PINCP, RETP, SEMP, SSIP, SSP, and WAGP in the person record. 
-
-WGTP 5
-Housing Weight
-00000  Group Quarters place holder record 
-00001..09999 .Integer weight of housing unit
-
 NP 2
 Number of person records following this housing record
 00.Vacant unit
@@ -141,8 +33,6 @@ b .N/A (GQ/vacant/not a one family house or mobile home/less than 1 acre)
 4 .$ 2500 - $ 4999
 5 .$ 5000 - $ 9999
 6 .$10000+  
-
-Note: no adjustment factor is applied to AGS.
 
 BATH 1
 Bathtub or shower
@@ -193,8 +83,6 @@ bbbb .N/A (GQ/vacant/not owned or being bought)
 0000 .Not condo
 0001..9999 .$1 - $9999 (Rounded and top-coded)
 
-Note: Use ADJHSG to adjust CONP to constant dollars.
-
 DIALUP 1
 Dial-up service
 b .N/A (GQ)
@@ -213,8 +101,6 @@ bbb .N/A (GQ/vacant)
 001 .Included in rent or in condo fee
 002 .No charge or electricity not used
 003..999 .$3 to $999 (Rounded and top-coded)
-
-Note: Use ADJHSG to adjust ELEP values 3 and over to constant dollars.
 
 FIBEROP 1
 Fiber-optic Internet service
@@ -235,8 +121,6 @@ bbbb .N/A (GQ/vacant)
 0002 .No charge or these fuels not used
 0003..9999 .$3 to $9999 (Rounded and top-coded)
 
-Note: Use ADJHSG to adjust FULP values 3 and over to constant dollars.
-
 GASP 3
 Gas (monthly cost)
 bbb .N/A (GQ/vacant)
@@ -244,8 +128,6 @@ bbb .N/A (GQ/vacant)
 002 .Included in electricity payment
 003 .No charge or gas not used
 004..999 .$4 to $999 (Rounded and top-coded)
-
-Note: Use ADJHSG to adjust GASP values 4 and over to constant dollars.
 
 HANDHELD 1
 Handheld computer
@@ -272,8 +154,6 @@ bbbbb  .N/A (GQ/vacant/not owned or being bought)
 00000  .None
 00001..10000 .$1 to $10000 (Rounded and top-coded)
 
-Note: Use ADJHSG to adjust INSP to constant dollars.
-
 LAPTOP 1
 Laptop, desktop, or notebook computer
 b .N/A (GQ)
@@ -285,8 +165,6 @@ Mobile home costs (yearly amount)
 bbbbb  .N/A (GQ/vacant/not owned or being bought/not mobile home)
 00000  .None
 00001..99999 .$1 to $99999 (Rounded and top-coded)
-
-Note: Use ADJHSG to adjust MHP to constant dollars.
 
 MODEM 1
 Cable Internet service
@@ -304,8 +182,6 @@ MRGP 5
 First mortgage payment (monthly amount)
 bbbbb  .N/A (GQ/vacant/not owned or being bought/not mortgaged)
 00001..99999 .$1 to $99999 (Rounded and top-coded)
-
-Note: Use ADJHSG to adjust MRGP to constant dollars.
 
 MRGT 1
 First mortgage payment includes real estate taxes
@@ -348,8 +224,6 @@ Monthly rent
 bbbbbN/A (GQ/not a rental unit/occupied without rent payment)
 00001..99999 .$1 to $99999 (Rounded and top-coded)
 
-Note: Use ADJHSG to adjust RNTP to constant dollars.
-
 RWAT 1
 Hot and cold running water
 b .N/A (GQ)
@@ -381,8 +255,6 @@ Total payment on all second and junior mortgages and home equity loans
 (monthly amount)
 bbbbb  .N/A (GQ/vacant/not owned or being bought/no second or junior mortgages or home equity loans)
 00001..99999 .$1 to $99999 (Rounded and top-coded)
-
-Note: Use ADJHSG to adjust SMP to constant dollars.
 
 STOV 1
 Stove or range
@@ -444,8 +316,6 @@ bbbb .N/A (GQ/vacant)
 0002 .No charge
 0003..9999  .$3 to $9999 (Rounded and top-coded)
 
-Note: Use ADJHSG to adjust WATP values 3 and over to constant dollars.
-
 YBL 2
 When structure first built
 bb .N/A (GQ)
@@ -489,8 +359,6 @@ bbbbbbbbb .N/A(GQ/vacant)
 000000001 .$1 or Break even
 000000002..999999999 .Total family income in dollars (Components are rounded) 
 
-Note: Use ADJINC to adjust FINCP to constant dollars.
-
 FPARC 1
 Family presence and age of related children
 b .N/A (GQ/vacant/not a family)
@@ -503,8 +371,6 @@ GRNTP 5
 Gross rent (monthly amount)
 bbbbb  .N/A (GQ/vacant/not a rental unit/occupied without rent payment)
 00001..99999 .$1 - $99999 (Components are rounded)
-
-Note: Use ADJHSG to adjust GRNTP to constant dollars.
 
 GRPIP 3
 Gross rent as a percentage of household income past 12 months   
@@ -540,8 +406,6 @@ bbbbbbbbb .N/A(GQ/vacant)
 -00000001..-00059998 .Loss of $1 to -$59,998
 000000001 .$1 or Break even
 000000002..999999999 .Total household income in dollars (Components are rounded)
-
-Note: Use ADJINC to adjust HINCP to constant dollars.
 
 HOTWAT 1
 Water heater (Puerto Rico only)
@@ -707,8 +571,6 @@ bbbbbN/A (GQ/vacant/not owned or being bought)
 00000None
 00001..99999 .$1 - $99999 (Components are rounded) 
 
-Note: Use ADJHSG to adjust SMOCP to constant dollars.
-
 SMX 1
 Second or junior mortgage or home equity loan status
 b .N/A (GQ/vacant/not owned or being bought)
@@ -808,8 +670,6 @@ bb .N/A (GQ/vacant/not owned or being bought)
 67 .$9000 - $9999
 68 .$10000+(Top-coded)
 
-Note: No adjustment factor is applied to TAXP.
- 
 WIF 1
 Workers in family during the past 12 months
 b .N/A (GQ/vacant/non-family household)
@@ -856,84 +716,9 @@ bb .N/A (GQ/not a family household/same-sex married-couple families)
 14 .Female householder with no husband present, householder inlabor force and unemployed
 15 .Female householder with no husband present, householder not in labor force
 
-SERIALNO 7
-Housing unit/GQ person serial number
-0000001..9999999 .Unique identifier
-
 SPORDER 2
 Person number
 01..20 .Person number
-
-PUMA 5
-Public use microdata area code (PUMA) based on 2010 Census definition
-00100..70301 .Public use microdata area codes
- 
-Note: Public use microdata areas (PUMAs) designate areas of 100,000 or more population.  Use with ST for unique code.
-
-ST 2
-State Code
-01 .Alabama/AL
-02 .Alaska/AK
-04 .Arizona/AZ
-05 .Arkansas/AR
-06 .California/CA
-08 .Colorado/CO
-09 .Connecticut/CT
-10 .Delaware/DE
-11 .District of Columbia/DC
-12 .Florida/FL
-13 .Georgia/GA
-15 .Hawaii/HI
-16 .Idaho/ID
-17 .Illinois/IL
-18 .Indiana/IN
-19 .Iowa/IA
-20 .Kansas/KS
-21 .Kentucky/KY
-22 .Louisiana/LA
-23 .Maine/ME
-24 .Maryland/MD
-25 .Massachusetts/MA
-26 .Michigan/MI
-27 .Minnesota/MN
-28 .Mississippi/MS
-29 .Missouri/MO
-30 .Montana/MT
-31 .Nebraska/NE
-32 .Nevada/NV
-33 .New Hampshire/NH
-34 .New Jersey/NJ
-35 .New Mexico/NM
-36 .New York/NY
-37 .North Carolina/NC
-38 .North Dakota/ND
-39 .Ohio/OH
-40 .Oklahoma/OK
-41 .Oregon/OR
-42 .Pennsylvania/PA
-44 .Rhode Island/RI
-45 .South Carolina/SC
-46 .South Dakota/SD
-47 .Tennessee/TN
-48 .Texas/TX
-49 .Utah/UT
-50 .Vermont/VT
-51 .Virginia/VA
-53 .Washington/WA
-54 .West Virginia/WV
-55 .Wisconsin/WI
-56 .Wyoming/WY
-72 .Puerto Rico/PR
-
-ADJINC 7
-Adjustment factor for income and earnings dollar amounts (6 implied decimal places)
-1008425 .2014 factor (1.008425)
-
-Note: The value of ADJINC inflation-adjusts reported income to 2014 dollars.  ADJINC applies to variables FINCP and HINCP in the housing record, and variables INTP, OIP, PAP, PERNP, PINCP, RETP, SEMP, SSIP, SSP, and WAGP in the person record. 
-
-PWGTP 5
-Person's weight   
-00001..09999 .Integer weight of person
 
 AGEP 2
 Age
@@ -1346,7 +1131,6 @@ b .N/A (less than 17 years old)
 3 .Only on active duty for training in Reserves/National Guard 
 4 .Never served in the military
 
-
 MLPA 1
 Served September 2001 or later
 b .N/A (less than 17 years old/no active duty)
@@ -1445,16 +1229,12 @@ bbbbbb .N/A (less than 15 years old)
 000000 .None
 000001..999999 .$1 to $999999 (Rounded and top-coded)
 
-Note: Use ADJINC to adjust OIP to constant dollars.
-
 PAP 5
 Public assistance income past 12 months
 bbbbb .N/A (less than 15 years old)
 00000 .None
 00001..99999.$1 to $99999 (Rounded)
  
-Note: Use ADJINC to adjust PAP to constant dollars.
-
 RELP 2
 Relationship
 00 .Reference person
@@ -1481,8 +1261,6 @@ Retirement income past 12 months
 bbbbbb .N/A (less than 15 years old)
 000000 .None
 000001..999999.$1 to $999999 (Rounded and top-coded)
-
-Note: Use ADJINC to adjust RETP to constant dollars.
 
 SCH 1
 School enrollment
@@ -1539,8 +1317,6 @@ bb .N/A (less than 3 years old)
 23 .Professional degree beyond a bachelor's degree
 24 .Doctorate degree
 
-
-
 SEMP 6
 Self-employment income past 12 months (signed)
 bbbbbb  .N/A (less than 15 years old)
@@ -1548,8 +1324,6 @@ bbbbbb  .N/A (less than 15 years old)
 -10000..-00001 .Loss of $1 to $10000 (Rounded and bottom-coded)
 000001  .$1 or break even
 000002..999999 .$2 to $999999 (Rounded and top-coded)
-
-Note: Use ADJINC to adjust SEMP to constant dollars.
 
 SEX 1
 Sex
@@ -1562,24 +1336,17 @@ bbbbb  .N/A (less than 15 years old)
 00000  .None
 00001..99999 .$1 to $99999 (Rounded)
 
-Note: Use ADJINC to adjust SSIP to constant dollars.
-
 SSP 5
-
 Social Security income past 12 months
 bbbbb  .N/A (less than 15 years old)
 00000  .None
 00001..99999 .$1 to $99999 (Rounded)
-
-Note: Use ADJINC to adjust SSP to constant dollars.
 
 WAGP 6
 Wages or salary income past 12 months
 bbbbbb  .N/A (less than 15 years old)
 000000 .None
 000001..999999 .$1 to 999999 (Rounded and top-coded)
-
-Note: Use ADJINC to adjust WAGP to constant dollars.
 
 WKHP 2
 Usual hours worked per week past 12 months
@@ -1594,8 +1361,6 @@ b .N/A (less than 16 years old)
 1 .Within the past 12 months
 2 .1-5 years ago
 3 .Over 5 years ago or never worked
-
-
 
 WKW 1
 Weeks worked during past 12 months
@@ -2887,8 +2652,6 @@ bbbb .N/A (less than 16 years old/NILF who last worked more than 5 years ago or 
 9870 .MIL-MILITARY RESERVES OR NATIONAL GUARD
 9920 .UNEMPLOYED AND LAST WORKED 5 YEARS AGO OR EARLIER OR NEVER WORKED**
 
-Note: For additional information on NAICS and SOC groupings within major categories visit our website at: http://www.census.gov/people/io/methodology/indexes.html.
-
 JWAP 3
 Time of arrival at work - hour and minute
 bbb .N/A (not a worker; worker who worked at home)
@@ -3331,8 +3094,6 @@ bbb .N/A (not a worker; worker who worked at home)
 148 .10:50 p.m. to 10:59 p.m.
 149 .11:00 p.m. to 11:29 p.m.
 150 .11:30 p.m. to 11:59 p.m.
-
-
 
 LANP 3
 Language spoken at home
@@ -3840,8 +3601,6 @@ bbbbbbbb .N/A (less than 16 years old/NILF who last worked more than 5 years ago
 92MP .ADM-JUSTICE, PUBLIC ORDER, AND SAFETY ACTIVITIES
 9920 .UNEMPLOYED AND LAST WORKED 5 YEARS AGO OR EARLIER OR NEVER WORKED**
 
-Note: For additional information on NAICS and SOC groupings within major categories visit our website at: http://www.census.gov/people/io/methodology/indexes.html.
-
 NATIVITY 1
 Nativity
 1 .Native
@@ -4347,8 +4106,6 @@ bbbb  .N/A (less than 16 years old/NILF who last worked more than 5 years ago or
 9830 .MIL-MILITARY, RANK NOT SPECIFIED **
 9920 .UNEMPLOYED AND LAST WORKED 5 YEARS AGO OR EARLIER OR NEVER WORKED **
 
-Note: For additional information on NAICS and SOC groupings within major categories visit our website at: http://www.census.gov/people/io/methodology/indexes.html.
-
 PAOC 1
 Presence and age of own children
 b .N/A (male/female under 16 years old/GQ)
@@ -4366,8 +4123,6 @@ bbbbbbb .N/A (less than 15 years old)
 0000001 .$1 or break even
 0000002..9999999 .$2 to $9999999 (Rounded & top-coded components)
 
-Note: Use ADJINC to adjust PERNP to constant dollars.
-
 PINCP 7
 Total person's income (signed)
 bbbbbbb .N/A (less than 15 years old)
@@ -4376,8 +4131,6 @@ bbbbbbb .N/A (less than 15 years old)
 -000001..-019998 .Loss $1 to $19998 (Rounded components)
 0000001 .$1 or break even
 0000002..9999999 .$2 to $9999999 (Rounded & top-coded components)
-
-Note: Use ADJINC to adjust PINCP to constant dollars.
 
 POBP 3
 Place of birth (Recode)
@@ -5433,8 +5186,6 @@ bbbbbb .N/A (less than 16 years old/NILF who last worked more than 5 years ago o
 559830 .MIL-MILITARY, RANK NOT SPECIFIED
 999920 .UNEMPLOYED AND LAST WORKED 5 YEARS AGO OR EARLIER OR NEVER WORKED
 
-Note: For additional information on NAICS and SOC groupings within major categories visit our website at:  http://www.census.gov/people/io/methodology/indexes.
-
 VPS 2
 Veteran period of service
 bb .N/A (less than 17 years old, no active duty)
@@ -5483,43 +5234,3 @@ TRICARE coverage given through the eligibility coverage edit
 b .Does not have TRICARE coverage (HINS5=2)
 0 .No
 1 .Yes
-
-Note for both Industry and Occupation lists in Data Dictionary:
-
-*  In cases where the SOC occupation code ends in X(s) or Y(s), two or more 
-SOC occupation codes were aggregated to correspond to a specific Census 
-occupation code. In these cases, the Census occupation description is used 
-for the SOC occupation title.
-
-** These codes are pseudo codes developed by the Census Bureau and are not
-official or equivalent NAICS or SOC codes.
-
-Legend to Identify NAICS Equivalents
-M = Multiple NAICS codes
-P = Part of a NAICS code - NAICS code split between two or more Census codes
-S = Not specified Industry in NAICS sector - Specific to Census codes only
-Z = Exception to NAICS code - Part of NAICS industry but has a unique Census code
-
-Note: For additional information on NAICS and SOC groupings
-within major categories visit our website at: 
-http://www.census.gov/people/io/methodology/indexes.html.
-
-*** Refer to top-coding documentation at:
-http://www.census.gov/programs-surveys/acs/technical-documentation/pums/documentation.html 
-
-**** The World Area of Birth (WAOB) in the PUMS dataset is based upon the
-Place of Birth (POB) variable in the full dataset, not the Place of Birth
-recode created for PUMS (POBP).  POB contains more detailed place of birth
-information than POBP.  Therefore, WAOB cannot be recoded from POBP.
-
-Data users should be aware that the area groupings for WAOB are based
-primarily upon United States administrative boundaries, not geographic
-boundaries.  For example, Guam is grouped into "Puerto Rico and the U.S.
-Island Areas," although geographically it is located in Oceania.  Not all
-places of birth are listed individually in POBP.  Therefore the user
-cannot recreate an exact world area of birth variable from POBP based upon
-geographic location of birth.
-
-
-
-

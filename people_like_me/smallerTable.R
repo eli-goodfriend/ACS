@@ -22,7 +22,8 @@ for (idx in seq(80)){
   dbSendQuery(db, sql)
 }
 
-toRemove <- c("rt","hotwat","faccessp","facrp","fagsp","fbathp","fbdsp",
+toRemove <- c("serialno","rt","puma","division","region","st",
+              "hotwat","faccessp","facrp","fagsp","fbathp","fbdsp",
               "fbldp","fbroadbndp","fbusp","fcompothxp","fconp",
               "fdialupp","fdslp","felep","ffiberopp","ffsp","ffulp",
               "fgasp","fhandheldp","fhflp","fhotwatp","finsp","fkitp",
