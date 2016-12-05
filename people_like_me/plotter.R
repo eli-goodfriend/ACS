@@ -12,6 +12,14 @@ plotMap <- function(dataframe, column, titletext){
   library("mapproj")
   library("ggmap")
   library("gridExtra")
+
+  # overall outline
+  # TODO this should get moved
+  library("maptools")
+  outlineFile = "~/Data/ACS/shapefiles/cb_2015_us_nation_20m.shp"
+  outline = readShapePoly(outlineFile)
+  outlineToPlot = fortify(outline)
+  outlineToPlot = outlineToPlot[order(outlineToPlot$order),]
   
   limits = c(min(column),max(column))
   continentalPlot <- ggplot() +
@@ -23,16 +31,20 @@ plotMap <- function(dataframe, column, titletext){
           plot.title=element_text(size=24)) +
     labs(title=titletext) +
     xlim(-130, -65) +
-    ylim(25,50) +
-    scale_fill_gradient("",low="white", high="blue", limits=limits)
+    ylim(20,50) +
+    scale_fill_gradient("",low="white", high="blue", limits=limits) +
+    geom_polygon(data = outlineToPlot, aes(x=long, y=lat, group=group), 
+                 color="black", fill=NA)
   alaskaPlot <- ggplot() +
     geom_polygon(data = dataframe,
                  aes(x = long, y = lat, group = group, fill = column)) +
     coord_map() +
     theme_nothing(legend=FALSE) +
-    xlim(-180, -130) +
-    ylim(53,73) +
-    scale_fill_gradient(low="white", high="blue", limits=limits)
+    xlim(-180, -120) +
+    ylim(50,73) +
+    scale_fill_gradient(low="white", high="blue", limits=limits) +
+    geom_polygon(data = outlineToPlot, aes(x=long, y=lat, group=group), 
+                 color="black", fill=NA)
   hawaiiPlot <- ggplot() +
     geom_polygon(data = dataframe,
                  aes(x = long, y = lat, group = group, fill = column)) +
@@ -40,7 +52,9 @@ plotMap <- function(dataframe, column, titletext){
     theme_nothing(legend=FALSE) +
     xlim(-160, -153) +
     ylim(17.5,22.5) +
-    scale_fill_gradient(low="white", high="blue", limits=limits)
+    scale_fill_gradient(low="white", high="blue", limits=limits) +
+    geom_polygon(data = outlineToPlot, aes(x=long, y=lat, group=group), 
+                 color="black", fill=NA)
   usaPlot <- grid.arrange(arrangeGrob(alaskaPlot + theme(legend.position="none"),
                                       hawaiiPlot + theme(legend.position="none"),
                                       nrow=2),
