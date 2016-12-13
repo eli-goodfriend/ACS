@@ -2,8 +2,16 @@ library(shiny)
 source("~/Dropbox/Code/ACS/people_like_me/plotter.R") # also opens db
 source("~/Dropbox/Code/ACS/people_like_me/possibleCategories.R")
 
-# Define server logic required to draw a histogram
+# Define server logic required to draw a plot of the USA
 shinyServer(function(input, output, clientData, session) {
+  
+  # choose the type of input for the value of the category
+  output$isFactor <- reactive({
+    colname <- input$colname
+    return(getIsFactor(colname))
+  })
+  
+  outputOptions(output, "isFactor", suspendWhenHidden=FALSE)
   
   # update the input boxes
   getVals <- reactive({
@@ -13,12 +21,14 @@ shinyServer(function(input, output, clientData, session) {
   })
   
   observe({
-    updateSelectizeInput(session,"value",
+    updateSelectizeInput(session,"valueFac",
                          label = "Value:",
                          choices = getVals())
   }) # TODO why does this only work once?!
+     # it does work multiple times! it just takes a long time because
+     # it tries to plot in between :/
   
-  # Expression that generates a histogram. The expression is
+  # Expression that generates a plot. The expression is
   # wrapped in a call to renderPlot to indicate that:
   #
   #  1) It is "reactive" and therefore should re-execute automatically
@@ -26,16 +36,21 @@ shinyServer(function(input, output, clientData, session) {
   #  2) Its output type is a plot
   
   output$distPlot <- renderPlot({
+    isFactor <- getIsFactor(input$colname)
+   
+    if (nchar(input$colname[1])<1){return()} # haven't picked a category yet
 
-    if (nchar(input$value[1])<1){return()}
+    criteriaIn <- ''
+    if (isFactor==1 & nchar(input$valueFac[1])>0){
+      criteriaIn <- paste(input$colname,"==",input$valueFac, sep=".")
+    } else if (isFactor==0) { 
+      criteriaIn <- paste(input$colname,">",input$valueNum, sep=".")
+    } else {
+      return() # don't have a value input yet
+    }
     
-    criteriaIn <- paste(input$colname,"==",input$value, sep=".")
+    print(criteriaIn)
     likeMe(criteriaIn)
-    # x    <- faithful[, 2]  # Old Faithful Geyser data
-    # bins <- seq(min(x), max(x), length.out = input$bins + 1)
-    # 
-    # # draw the histogram with the specified number of bins
-    # hist(x, breaks = bins, col = 'darkgray', border = 'white',
-    #      main = paste(input$colname, input$value))
+
   })
 })
