@@ -8,6 +8,7 @@ tablename <- "acs14lite"
 
 # plotting function
 plotMap <- function(dataframe, column, titletext){    
+  print("Plotting...")
   library("ggplot2")
   library("mapproj")
   library("ggmap")
@@ -64,6 +65,7 @@ plotMap <- function(dataframe, column, titletext){
 
 # data crunching
 plotByPUMA <- function(dataset){
+  print("Crunching...")
   dataset$geography <- sprintf("%07d",as.numeric(dataset$geography))
 
   # what is the percentage overall?
@@ -100,25 +102,25 @@ plotByPUMA <- function(dataset){
 
 # data corralling
 likeMe <- function(criteriaIn){
-
+  print("Pulling data...")
   
   # determine the data we want, pull it, and clean it up
-  criteria <- strsplit(criteriaIn, ".", fixed = TRUE)
-  criteria <- matrix(unlist(criteria), ncol = 3, byrow = TRUE)
-  newVariables <- criteria[,1]
-  variables <- c("pwgtp", "geography", newVariables)
+  criteria <- strsplit(criteriaIn, "`", fixed = TRUE)
+  criteria <- matrix(unlist(criteria), byrow = TRUE)
+  newVariable <- criteria[1,1]
+  variables <- c("pwgtp", "geography", newVariable)
   dataset <- dbGetQuery(db, paste("SELECT", toString(variables),
                                   "FROM", tablename))
   
   # figure out who is like me
-  criterion <- gsub(".", "", criteriaIn, fixed = TRUE)
+  criterion <- gsub("`", "", criteriaIn, fixed = TRUE)
   criterion <- paste("dataset$", criterion, sep="")
   criterion <- paste(criterion, collapse = "&")
   cmd <- paste0("dataset$likeme <- ifelse(",criterion,", 1, 0)")
   eval(parse(text=cmd))
   dataset$likeme[is.na(dataset$likeme)] <- 0
   dataset$likeme <- factor(dataset$likeme)
-  
+
   # make the plot
   plotByPUMA(dataset)
 }

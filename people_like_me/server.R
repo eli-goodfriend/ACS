@@ -40,16 +40,18 @@ shinyServer(function(input, output, clientData, session) {
    
     if (nchar(input$colname[1])<1){return()} # haven't picked a category yet
 
-    criteriaIn <- ''
+    criteriaIn <- c()
     if (isFactor==1 & nchar(input$valueFac[1])>0){
-      criteriaIn <- paste(input$colname,"==",input$valueFac, sep=".")
-    } else if (isFactor==0) { 
-      criteriaIn <- paste(input$colname,">",input$valueNum, sep=".")
+      criteriaIn <- c(criteriaIn, 
+                      paste(input$colname,"==",input$valueFac, sep="`"))
+    } else if (isFactor==0 & (input$valueLL < input$valueUL)) { 
+      criteriaIn <- c(criteriaIn,
+                      paste(input$colname,">=",input$valueLL, sep="`"),
+                      paste(input$colname,"<" ,input$valueUL, sep="`"))
     } else {
       return() # don't have a value input yet
     }
     
-    print(criteriaIn)
     likeMe(criteriaIn)
 
   })

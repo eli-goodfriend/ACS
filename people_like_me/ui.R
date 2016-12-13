@@ -30,10 +30,14 @@ shinyUI(fluidPage(
       # if the data category is not a factor, it's numeric; pick cutoff value
       conditionalPanel(condition = "output.isFactor == 0",
         numericInput(
-          'valueNum', 'Bigger than:', 0 # also min, max, step, width
+          'valueLL', 'Bigger than or equal to:', 0 # also min, max, step, width
           )
+      ),
+      conditionalPanel(condition = "output.isFactor == 0",
+                       numericInput(
+                         'valueUL', 'Smaller than:', 0 # also min, max, step, width
+                       )
       )
-      # if the data category is a number, make a text entry box for a number
     ),
 
     # Show a plot of the generated distribution
