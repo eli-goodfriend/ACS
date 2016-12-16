@@ -39,7 +39,8 @@ shinyServer(function(input, output, clientData, session) {
     isFactor <- getIsFactor(input$colname)
    
     if (nchar(input$colname[1])<1){return()} # haven't picked a category yet
-
+    if (is.na(input$valueLL) | is.na(input$valueUL)){return()}
+    
     criteriaIn <- c()
     if (isFactor==1 & nchar(input$valueFac[1])>0){
       criteriaIn <- c(criteriaIn, 

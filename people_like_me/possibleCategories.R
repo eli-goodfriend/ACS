@@ -10,6 +10,9 @@ possible.categories <- list(
                    "Marital status" = "mar")
 )
 
+factorVars <- c('type_','access','acr','ags','bath','sex','mar')
+numericVars <- c('np')
+
 # what values do those take on?
 possibleValues <- c("")
 
@@ -33,9 +36,9 @@ getPossibleValues <- function(colname){
 getIsFactor <- function(colname){
   # this is also janky AF
   isFactor <- -1
-  if (colname == 'np'){
+  if (colname %in% numericVars){
     isFactor <- 0
-  } else if (colname == 'type_'){
+  } else if (colname %in% factorVars){
     isFactor <- 1
   }
   return(isFactor)
